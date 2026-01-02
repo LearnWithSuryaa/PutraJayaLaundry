@@ -45,16 +45,28 @@ function calculateStats(ordersData: any[] | null) {
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  // Get start and end of today in ISO format
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startOfDay = today.toISOString();
+  // Get start and end of today in Asia/Jakarta timezone (WIB/UTC+7)
+  // Supabase stores timestamptz which is timezone-aware
+  const now = new Date();
 
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const endOfDay = tomorrow.toISOString();
+  // Convert to Jakarta timezone and get start of day
+  const jakartaOffset = 7 * 60; // UTC+7 in minutes
+  const localOffset = now.getTimezoneOffset(); // Local offset in minutes
+  const offsetDiff = jakartaOffset + localOffset; // Difference to add
 
-  // Fetch only TODAY's orders - Server-side rendering
+  const todayJakarta = new Date(now.getTime() + offsetDiff * 60 * 1000);
+  todayJakarta.setHours(0, 0, 0, 0);
+  const startOfDay = new Date(
+    todayJakarta.getTime() - offsetDiff * 60 * 1000
+  ).toISOString();
+
+  const tomorrowJakarta = new Date(todayJakarta);
+  tomorrowJakarta.setDate(tomorrowJakarta.getDate() + 1);
+  const endOfDay = new Date(
+    tomorrowJakarta.getTime() - offsetDiff * 60 * 1000
+  ).toISOString();
+
+  // Fetch only TODAY's orders (Jakarta timezone) - Server-side rendering
   const { data: ordersData } = await supabase
     .from("orders")
     .select(
