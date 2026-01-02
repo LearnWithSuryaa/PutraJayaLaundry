@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { DashboardClient } from "./DashboardClient";
 import { Order } from "@/types";
 
-// Helper function to calculate stats
+// Helper function to calculate stats for today
 function calculateStats(ordersData: any[] | null) {
   if (!ordersData || ordersData.length === 0) {
     return {
@@ -13,10 +13,10 @@ function calculateStats(ordersData: any[] | null) {
     };
   }
 
-  const totalRevenue = ordersData.reduce(
-    (acc, curr) => acc + (Number(curr.total_price) || 0),
-    0
-  );
+  // Only count paid orders for revenue
+  const totalRevenue = ordersData
+    .filter((o) => o.status === "paid" || o.status === "completed")
+    .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0);
 
   const newOrders = ordersData.filter((o) => o.status === "pending").length;
 
@@ -45,16 +45,26 @@ function calculateStats(ordersData: any[] | null) {
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  // Fetch only necessary data with limit - Server-side rendering
+  // Get start and end of today in ISO format
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startOfDay = today.toISOString();
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const endOfDay = tomorrow.toISOString();
+
+  // Fetch only TODAY's orders - Server-side rendering
   const { data: ordersData } = await supabase
     .from("orders")
     .select(
       "id, status, total_price, customer_name, customer_phone, created_at, order_items(service_name)"
     )
-    .order("created_at", { ascending: false })
-    .limit(100); // Limit to 100 most recent orders for stats
+    .gte("created_at", startOfDay)
+    .lt("created_at", endOfDay)
+    .order("created_at", { ascending: false });
 
-  // Calculate stats on server
+  // Calculate stats on server (today's data only)
   const stats = calculateStats(ordersData);
   const recentOrders = (ordersData?.slice(0, 5) || []) as Order[];
 

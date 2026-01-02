@@ -52,19 +52,19 @@ export function DashboardClient({
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Pendapatan"
+          title="Pendapatan Hari Ini"
           value={new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
             maximumFractionDigits: 0,
           }).format(initialStats.totalRevenue)}
-          desc="Total akumulasi semua order"
+          desc="Total pendapatan hari ini"
           icon={DollarSign}
           color="text-emerald-400"
           bg="bg-emerald-500/10"
         />
         <StatsCard
-          title="Order Baru (Pending)"
+          title="Order Pending"
           value={initialStats.newOrders.toString()}
           desc="Perlu diproses segera"
           icon={ShoppingBag}
@@ -72,9 +72,9 @@ export function DashboardClient({
           bg="bg-blue-500/10"
         />
         <StatsCard
-          title="Pelanggan Aktif"
+          title="Pelanggan Hari Ini"
           value={initialStats.activeCustomers.toString()}
-          desc="Total pelanggan unik"
+          desc="Pelanggan unik hari ini"
           icon={Users}
           color="text-violet-400"
           bg="bg-violet-500/10"
@@ -82,7 +82,7 @@ export function DashboardClient({
         <StatsCard
           title="Layanan Terlaris"
           value={initialStats.topService}
-          desc="Paling sering dipesan"
+          desc="Paling sering dipesan hari ini"
           icon={TrendingUp}
           color="text-orange-400"
           bg="bg-orange-500/10"
@@ -93,7 +93,7 @@ export function DashboardClient({
       <Card className="border border-white/10 bg-slate-900/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl">
         <CardHeader className="border-b border-white/5 p-6 flex flex-row items-center justify-between">
           <CardTitle className="text-white text-lg font-semibold">
-            Order Terbaru
+            Order Hari Ini
           </CardTitle>
           <Link href="/admin/orders">
             <Button
