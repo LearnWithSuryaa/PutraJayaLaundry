@@ -189,7 +189,7 @@ export default function ReportsPage() {
     };
 
     fetchReportData();
-  }, [supabase, selectedMonth, selectedYear]); // Run on filter change
+  }, [supabase, selectedMonth, selectedYear, selectedDate]); // Run on filter change
 
   // --- ALGORITHMS & STATS ---
 
