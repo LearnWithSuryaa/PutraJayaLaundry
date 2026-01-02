@@ -74,18 +74,18 @@ export default function ServicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground/90">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground/90">
             Manajemen Layanan
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Atur katalog harga dan kategori layanan.
           </p>
         </div>
         <Button
           onClick={() => setIsFormOpen(true)}
-          className="rounded-full shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90"
+          className="w-full md:w-auto rounded-full shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 min-h-[44px]"
         >
           <Plus className="mr-2 h-4 w-4" /> Tambah Layanan
         </Button>

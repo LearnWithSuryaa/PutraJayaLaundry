@@ -151,7 +151,7 @@ export function InventoryForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-slate-900/95 backdrop-blur-xl border-white/10 text-white p-0 overflow-hidden gap-0">
+      <DialogContent className="max-w-full md:max-w-[500px] h-full md:h-auto bg-slate-900/95 backdrop-blur-xl border-0 md:border md:border-white/10 text-white md:rounded-2xl max-h-screen overflow-y-auto p-0">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             {initialData ? (
@@ -295,7 +295,7 @@ export function InventoryForm({
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-xl transition-all shadow-lg shadow-cyan-500/20"
+                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold h-11 rounded-xl transition-all shadow-lg shadow-cyan-500/20"
               >
                 {loading ? (
                   <>

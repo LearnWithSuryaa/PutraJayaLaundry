@@ -175,7 +175,7 @@ export function OrderForm({ open, onOpenChange, onSuccess }: OrderFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-slate-900/95 backdrop-blur-xl border border-white/10 text-white rounded-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-full md:max-w-[600px] h-full md:h-auto bg-slate-900/95 backdrop-blur-xl border-0 md:border md:border-white/10 text-white md:rounded-2xl max-h-screen overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
             Buat Order Baru

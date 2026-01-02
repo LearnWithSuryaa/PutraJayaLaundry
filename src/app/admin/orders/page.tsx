@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OrderForm } from "@/components/admin/OrderForm";
+import { OrderCard } from "@/components/admin/OrderCard";
 import {
   Send,
   FileText,
@@ -198,24 +199,26 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header - Responsive */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground/90">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground/90">
             Manajemen Order
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Pantau dan kelola pesanan laundry.
           </p>
         </div>
         <Button
           onClick={() => setIsFormOpen(true)}
-          className="rounded-full shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90"
+          className="w-full md:w-auto rounded-full shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 min-h-[44px]"
         >
           <Plus className="mr-2 h-4 w-4" /> Order Baru
         </Button>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-md overflow-hidden">
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-md overflow-hidden">
         <Table>
           <TableHeader className="bg-white/5">
             <TableRow className="hover:bg-transparent border-b border-white/10">
@@ -412,40 +415,68 @@ export default function OrdersPage() {
         </Table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="flex items-center gap-2 text-slate-400">
+              <Loader2 className="animate-spin h-5 w-5" /> Memuat data...
+            </div>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-4xl opacity-20">📦</span>
+              <p>Belum ada order masuk.</p>
+            </div>
+          </div>
+        ) : (
+          orders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              updateStatus={updateStatus}
+              sendWhatsApp={sendWhatsApp}
+              deleteOrder={deleteOrder}
+            />
+          ))
+        )}
+      </div>
+
       <OrderForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSuccess={() => fetchOrders(page)}
       />
 
-      {/* Pagination Controls */}
+      {/* Pagination Controls - Responsive */}
       {totalCount > ITEMS_PER_PAGE && (
-        <div className="flex items-center justify-between mt-6 px-2">
-          <p className="text-sm text-slate-400">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mt-6 px-2">
+          <p className="text-xs md:text-sm text-slate-400 text-center md:text-left">
             Showing {page * ITEMS_PER_PAGE + 1} to{" "}
             {Math.min((page + 1) * ITEMS_PER_PAGE, totalCount)} of {totalCount}{" "}
             orders
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center md:justify-end">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0 || isLoading}
-              className="bg-slate-900/40 border-white/10 hover:bg-white/5 text-white"
+              className="bg-slate-900/40 border-white/10 hover:bg-white/5 text-white min-h-[44px] flex-1 md:flex-none"
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Previous
+              <ChevronLeft className="w-4 h-4 md:mr-1" />
+              <span className="hidden md:inline">Previous</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage((p) => p + 1)}
               disabled={(page + 1) * ITEMS_PER_PAGE >= totalCount || isLoading}
-              className="bg-slate-900/40 border-white/10 hover:bg-white/5 text-white"
+              className="bg-slate-900/40 border-white/10 hover:bg-white/5 text-white min-h-[44px] flex-1 md:flex-none"
             >
-              Next
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <span className="hidden md:inline">Next</span>
+              <ChevronRight className="w-4 h-4 md:ml-1" />
             </Button>
           </div>
         </div>

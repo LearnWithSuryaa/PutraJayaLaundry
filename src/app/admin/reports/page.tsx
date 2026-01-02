@@ -19,13 +19,10 @@ import {
 import {
   Loader2,
   TrendingUp,
-  DollarSign,
-  ShoppingBag,
   Package,
   AlertTriangle,
   PackageCheck,
   Activity,
-  Clock,
   WalletMinimal,
 } from "lucide-react";
 import { format, isSameDay, startOfWeek } from "date-fns";
@@ -105,22 +102,29 @@ export default function ReportsPage() {
       const jakartaOffset = 7 * 60; // UTC+7 in minutes
 
       if (selectedDate) {
-        // Daily view: specific date in Jakarta timezone
+        // Daily view: fetch entire WEEK data for accurate weekly stats
         const selectedDateObj = new Date(selectedDate + "T00:00:00");
         const localOffset = selectedDateObj.getTimezoneOffset();
         const offsetDiff = jakartaOffset + localOffset;
 
-        // Start of day in Jakarta timezone
+        // Get start of week (Monday) for selected date
+        const selectedWeekStart = startOfWeek(selectedDateObj, {
+          weekStartsOn: 1,
+        });
         const startJakarta = new Date(
-          selectedDateObj.getTime() + offsetDiff * 60 * 1000
+          selectedWeekStart.getTime() + offsetDiff * 60 * 1000
         );
         startJakarta.setHours(0, 0, 0, 0);
         startDate = new Date(
           startJakarta.getTime() - offsetDiff * 60 * 1000
         ).toISOString();
 
-        // End of day in Jakarta timezone
-        const endJakarta = new Date(startJakarta);
+        // Get end of week (Sunday) for selected date
+        const selectedWeekEnd = new Date(selectedWeekStart);
+        selectedWeekEnd.setDate(selectedWeekEnd.getDate() + 7);
+        const endJakarta = new Date(
+          selectedWeekEnd.getTime() + offsetDiff * 60 * 1000
+        );
         endJakarta.setHours(23, 59, 59, 999);
         endDate = new Date(
           endJakarta.getTime() - offsetDiff * 60 * 1000
@@ -196,34 +200,89 @@ export default function ReportsPage() {
   const stats = useMemo(() => {
     const today = new Date();
 
-    // A. LIVE STATS
-    const revenueToday = liveOrders.reduce((sum, order) => {
-      if (
-        order.status === "paid" &&
-        isSameDay(new Date(order.created_at), today)
-      ) {
+    // When selectedDate is set, use filtered data for ALL stats
+    // Otherwise, use live data for "today" stats and filtered data for monthly stats
+    let revenueToday: number;
+    let ordersToday: number;
+    let revenueThisWeek: number;
+
+    if (selectedDate) {
+      // Daily view: filter from week data for selected date
+      const selectedDateObj = new Date(selectedDate);
+
+      // Revenue for selected date only
+      revenueToday = orders.reduce((sum, order) => {
+        const orderDate = new Date(order.created_at);
+        if (
+          (order.status === "paid" || order.status === "completed") &&
+          orderDate.getFullYear() === selectedDateObj.getFullYear() &&
+          orderDate.getMonth() === selectedDateObj.getMonth() &&
+          orderDate.getDate() === selectedDateObj.getDate()
+        ) {
+          return sum + order.total_price;
+        }
+        return sum;
+      }, 0);
+
+      // Count orders for selected date only
+      ordersToday = orders.filter((order) => {
+        const orderDate = new Date(order.created_at);
+        return (
+          orderDate.getFullYear() === selectedDateObj.getFullYear() &&
+          orderDate.getMonth() === selectedDateObj.getMonth() &&
+          orderDate.getDate() === selectedDateObj.getDate()
+        );
+      }).length;
+
+      // Calculate week revenue: already have full week data in orders
+      const startOfSelectedWeek = startOfWeek(selectedDateObj, {
+        weekStartsOn: 1,
+      });
+      const endOfSelectedWeek = new Date(startOfSelectedWeek);
+      endOfSelectedWeek.setDate(endOfSelectedWeek.getDate() + 7);
+
+      revenueThisWeek = orders.reduce((sum, order) => {
+        if (order.status === "paid" || order.status === "completed") {
+          return sum + order.total_price;
+        }
+        return sum;
+      }, 0);
+    } else {
+      // Monthly view: use live data for today/week stats
+      revenueToday = liveOrders.reduce((sum, order) => {
+        if (
+          (order.status === "paid" || order.status === "completed") &&
+          isSameDay(new Date(order.created_at), today)
+        ) {
+          return sum + order.total_price;
+        }
+        return sum;
+      }, 0);
+
+      ordersToday = liveOrders.filter((o) =>
+        isSameDay(new Date(o.created_at), today)
+      ).length;
+
+      revenueThisWeek = liveOrders.reduce((sum, order) => {
+        if (order.status === "paid" || order.status === "completed") {
+          return sum + order.total_price;
+        }
+        return sum;
+      }, 0);
+    }
+
+    // B. MONTHLY/FILTERED REPORT STATS
+    const totalRevenue = orders.reduce((sum, order) => {
+      if (order.status === "paid" || order.status === "completed") {
         return sum + order.total_price;
       }
       return sum;
     }, 0);
 
-    const ordersToday = liveOrders.filter((o) =>
-      isSameDay(new Date(o.created_at), today)
-    ).length;
-
-    const revenueThisWeek = liveOrders.reduce((sum, order) => {
-      if (order.status === "paid") return sum + order.total_price;
-      return sum;
-    }, 0);
-
-    // B. MONTHLY REPORT STATS
-    const totalRevenue = orders.reduce((sum, order) => {
-      if (order.status === "paid") return sum + order.total_price;
-      return sum;
-    }, 0);
-
     const potentialRevenue = orders.reduce((sum, order) => {
-      if (order.status !== "paid") return sum + order.total_price;
+      if (order.status !== "paid" && order.status !== "completed") {
+        return sum + order.total_price;
+      }
       return sum;
     }, 0);
 
@@ -301,7 +360,14 @@ export default function ReportsPage() {
       ),
       lowStockItems,
     };
-  }, [orders, liveOrders, inventory, selectedMonth, selectedYear]);
+  }, [
+    orders,
+    liveOrders,
+    inventory,
+    selectedMonth,
+    selectedYear,
+    selectedDate,
+  ]);
 
   // Loading State
   if (loading && loadinStatic) {
@@ -315,65 +381,71 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">
-            {selectedDate ? "Laporan Harian" : "Laporan Bulanan"}
-          </h2>
-          <p className="text-slate-400">
-            {selectedDate
-              ? `Laporan untuk ${format(
-                  new Date(selectedDate),
-                  "dd MMMM yyyy",
-                  { locale: id }
-                )}`
-              : "Analisis performa bisnis dan inventaris Anda."}
-          </p>
-        </div>
+      {/* Header & Filters - Responsive */}
+      <div className="space-y-4 md:space-y-0">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+              {selectedDate ? "Laporan Harian" : "Laporan Bulanan"}
+            </h2>
+            <p className="text-sm md:text-base text-slate-400">
+              {selectedDate
+                ? `Laporan untuk ${format(
+                    new Date(selectedDate),
+                    "dd MMMM yyyy",
+                    { locale: id }
+                  )}`
+                : "Analisis performa bisnis dan inventaris Anda."}
+            </p>
+          </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-2">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[140px] bg-slate-900 border-white/10 text-white">
-              <SelectValue placeholder="Bulan" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-white/10 text-white">
-              {Array.from({ length: 12 }, (_, i) => (
-                <SelectItem key={i} value={i.toString()}>
-                  {format(new Date(2000, i, 1), "MMMM", { locale: id })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[100px] bg-slate-900 border-white/10 text-white">
-              <SelectValue placeholder="Tahun" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-white/10 text-white">
-              {[2024, 2025, 2026, 2027].map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Filters - Stack on mobile */}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full md:w-auto">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-full sm:w-[140px] bg-slate-900 border-white/10 text-white min-h-[44px]">
+                <SelectValue placeholder="Bulan" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-white/10 text-white">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <SelectItem key={i} value={i.toString()}>
+                    {format(new Date(2024, i, 1), "MMMM", { locale: id })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-full sm:w-[120px] bg-slate-900 border-white/10 text-white min-h-[44px]">
+                <SelectValue placeholder="Tahun" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-white/10 text-white">
+                {Array.from({ length: 5 }, (_, i) => {
+                  const year = new Date().getFullYear() - 2 + i;
+                  return (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
 
-          {/* Date Filter */}
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-2 bg-slate-900 border border-white/10 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            />
-            {selectedDate && (
-              <button
-                onClick={() => setSelectedDate("")}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm rounded-md transition-colors"
-              >
-                Reset
-              </button>
-            )}
+            {/* Date Filter */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="flex-1 sm:flex-none px-3 py-2 bg-slate-900 border border-white/10 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 min-h-[44px]"
+              />
+              {selectedDate && (
+                <button
+                  onClick={() => setSelectedDate("")}
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm rounded-md transition-colors min-h-[44px]"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

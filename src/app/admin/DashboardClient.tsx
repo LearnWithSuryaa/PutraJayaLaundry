@@ -30,19 +30,19 @@ export function DashboardClient({
   initialOrders,
 }: DashboardClientProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
             Dashboard
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-slate-400 mt-1 text-sm md:text-base">
             Overview performa laundry Anda hari ini.
           </p>
         </div>
-        <Link href="/admin/orders">
-          <Button className="bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg shadow-cyan-500/20 rounded-full px-6 py-6 font-semibold transition-all hover:scale-105">
+        <Link href="/admin/orders" className="w-full md:w-auto">
+          <Button className="w-full md:w-auto bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg shadow-cyan-500/20 rounded-full px-6 py-3 md:py-6 font-semibold transition-all hover:scale-105 min-h-[44px]">
             <Plus className="w-5 h-5 mr-2" />
             Buat Order Baru
           </Button>

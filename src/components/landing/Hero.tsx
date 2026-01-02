@@ -19,19 +19,6 @@ export function Hero() {
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-10"
     >
-      {/* 1. Premium Mesh Gradient Background Image */}
-      <div className="absolute inset-0 -z-30 h-full w-full overflow-hidden bg-background">
-        <Image
-          src="/bg-mesh.png"
-          alt="Aesthetic Mesh Gradient"
-          fill
-          className="object-cover opacity-90"
-          priority
-        />
-        {/* Soft overlay to ensure text readability & maintain glassmorphism feel */}
-        <div className="absolute inset-0 bg-white/40 dark:bg-black/40 backdrop-blur-[20px]" />
-      </div>
-
       {/* 2. Glass Overlay Texture */}
       <div className="absolute inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 

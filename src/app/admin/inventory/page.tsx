@@ -90,29 +90,29 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground/90 flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground/90 flex items-center gap-3">
             <PackageCheck className="text-cyan-400" /> Manajemen Stok
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Monitor persediaan bahan baku laundry.
           </p>
         </div>
         <Button
           onClick={() => setIsFormOpen(true)}
-          className="rounded-full shadow-lg shadow-cyan-500/20 bg-cyan-600 hover:bg-cyan-500"
+          className="w-full md:w-auto rounded-full shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 min-h-[44px]"
         >
           <Plus className="mr-2 h-4 w-4" /> Tambah Barang
         </Button>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+      {/* Search - Responsive */}
+      <div className="relative w-full">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
         <Input
           placeholder="Cari barang atau kategori..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-slate-900/40 border-white/10 rounded-xl"
+          className="pl-10 bg-slate-900 border-white/10 text-white placeholder:text-slate-500 min-h-[44px]"
         />
       </div>
 
