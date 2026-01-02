@@ -52,6 +52,7 @@ export default function ReportsPage() {
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString()
   );
+  const [selectedDate, setSelectedDate] = useState<string>(""); // Empty means monthly view
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -95,20 +96,36 @@ export default function ReportsPage() {
     const fetchReportData = async () => {
       setLoading(true);
 
-      // REPORT PERIOD: Selected Month
-      const startDate = new Date(
-        parseInt(selectedYear),
-        parseInt(selectedMonth),
-        1
-      ).toISOString();
-      const endDate = new Date(
-        parseInt(selectedYear),
-        parseInt(selectedMonth) + 1,
-        0,
-        23,
-        59,
-        59
-      ).toISOString();
+      // REPORT PERIOD: Selected Date (if specified) or Month
+      let startDate: string;
+      let endDate: string;
+
+      if (selectedDate) {
+        // Daily view: specific date
+        const start = new Date(selectedDate);
+        start.setHours(0, 0, 0, 0);
+        startDate = start.toISOString();
+
+        const end = new Date(selectedDate);
+        end.setHours(23, 59, 59, 999);
+        endDate = end.toISOString();
+      } else {
+        // Monthly view
+        startDate = new Date(
+          parseInt(selectedYear),
+          parseInt(selectedMonth),
+          1
+        ).toISOString();
+
+        endDate = new Date(
+          parseInt(selectedYear),
+          parseInt(selectedMonth) + 1,
+          0,
+          23,
+          59,
+          59
+        ).toISOString();
+      }
 
       const [ordersRes, logsRes] = await Promise.all([
         // Fetch Selected Month Data - Optimized query
@@ -271,15 +288,21 @@ export default function ReportsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white tracking-tight">
-            Laporan Bulanan
+            {selectedDate ? "Laporan Harian" : "Laporan Bulanan"}
           </h2>
           <p className="text-slate-400">
-            Analisis performa bisnis dan inventaris Anda.
+            {selectedDate
+              ? `Laporan untuk ${format(
+                  new Date(selectedDate),
+                  "dd MMMM yyyy",
+                  { locale: id }
+                )}`
+              : "Analisis performa bisnis dan inventaris Anda."}
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-[140px] bg-slate-900 border-white/10 text-white">
               <SelectValue placeholder="Bulan" />
@@ -304,6 +327,24 @@ export default function ReportsPage() {
               ))}
             </SelectContent>
           </Select>
+
+          {/* Date Filter */}
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="px-3 py-2 bg-slate-900 border border-white/10 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+            {selectedDate && (
+              <button
+                onClick={() => setSelectedDate("")}
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm rounded-md transition-colors"
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
