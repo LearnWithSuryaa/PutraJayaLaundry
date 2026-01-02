@@ -97,33 +97,63 @@ export default function ReportsPage() {
       setLoading(true);
 
       // REPORT PERIOD: Selected Date (if specified) or Month
+      // Handle timezone correctly for timestamptz in Supabase
       let startDate: string;
       let endDate: string;
 
-      if (selectedDate) {
-        // Daily view: specific date
-        const start = new Date(selectedDate);
-        start.setHours(0, 0, 0, 0);
-        startDate = start.toISOString();
+      // Jakarta timezone offset (WIB/UTC+7)
+      const jakartaOffset = 7 * 60; // UTC+7 in minutes
 
-        const end = new Date(selectedDate);
-        end.setHours(23, 59, 59, 999);
-        endDate = end.toISOString();
-      } else {
-        // Monthly view
+      if (selectedDate) {
+        // Daily view: specific date in Jakarta timezone
+        const selectedDateObj = new Date(selectedDate + "T00:00:00");
+        const localOffset = selectedDateObj.getTimezoneOffset();
+        const offsetDiff = jakartaOffset + localOffset;
+
+        // Start of day in Jakarta timezone
+        const startJakarta = new Date(
+          selectedDateObj.getTime() + offsetDiff * 60 * 1000
+        );
+        startJakarta.setHours(0, 0, 0, 0);
         startDate = new Date(
+          startJakarta.getTime() - offsetDiff * 60 * 1000
+        ).toISOString();
+
+        // End of day in Jakarta timezone
+        const endJakarta = new Date(startJakarta);
+        endJakarta.setHours(23, 59, 59, 999);
+        endDate = new Date(
+          endJakarta.getTime() - offsetDiff * 60 * 1000
+        ).toISOString();
+      } else {
+        // Monthly view in Jakarta timezone
+        const monthStart = new Date(
           parseInt(selectedYear),
           parseInt(selectedMonth),
           1
+        );
+        const localOffset = monthStart.getTimezoneOffset();
+        const offsetDiff = jakartaOffset + localOffset;
+
+        const startJakarta = new Date(
+          monthStart.getTime() + offsetDiff * 60 * 1000
+        );
+        startJakarta.setHours(0, 0, 0, 0);
+        startDate = new Date(
+          startJakarta.getTime() - offsetDiff * 60 * 1000
         ).toISOString();
 
-        endDate = new Date(
+        const monthEnd = new Date(
           parseInt(selectedYear),
           parseInt(selectedMonth) + 1,
-          0,
-          23,
-          59,
-          59
+          0
+        );
+        const endJakarta = new Date(
+          monthEnd.getTime() + offsetDiff * 60 * 1000
+        );
+        endJakarta.setHours(23, 59, 59, 999);
+        endDate = new Date(
+          endJakarta.getTime() - offsetDiff * 60 * 1000
         ).toISOString();
       }
 
