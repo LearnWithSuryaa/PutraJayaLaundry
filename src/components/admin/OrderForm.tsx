@@ -4,6 +4,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createClient } from "@/utils/supabase/client";
+import { formatCurrency } from "@/utils/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -341,12 +342,12 @@ export function OrderForm({ open, onOpenChange, onSuccess }: OrderFormProps) {
                       </span>
                       <span className="text-sm font-mono text-emerald-400">
                         {form.watch(`items.${index}.price`)
-                          ? `Rp ${(
+                          ? `Rp ${
                               (Number(form.watch(`items.${index}.price`)) ||
                                 0) *
                               (Number(form.watch(`items.${index}.quantity`)) ||
                                 1)
-                            ).toLocaleString("id-ID")}`
+                            }`
                           : "-"}
                       </span>
                     </div>
@@ -368,11 +369,7 @@ export function OrderForm({ open, onOpenChange, onSuccess }: OrderFormProps) {
             <div className="border-t border-white/10 pt-4 flex justify-between items-center">
               <span className="text-slate-400">Total Estimasi</span>
               <span className="text-2xl font-bold text-emerald-400">
-                {new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                  maximumFractionDigits: 0,
-                }).format(runningTotal)}
+                {formatCurrency(runningTotal)}
               </span>
             </div>
 

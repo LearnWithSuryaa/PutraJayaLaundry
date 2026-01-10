@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Order } from "@/types";
+import { formatCurrency } from "@/utils/format";
 
 interface DashboardStats {
   totalRevenue: number;
@@ -53,11 +54,7 @@ export function DashboardClient({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Pendapatan Hari Ini"
-          value={new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-          }).format(initialStats.totalRevenue)}
+          value={formatCurrency(initialStats.totalRevenue)}
           desc="Total pendapatan hari ini"
           icon={DollarSign}
           color="text-emerald-400"
@@ -146,11 +143,7 @@ export function DashboardClient({
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-emerald-400 text-sm">
-                      {new Intl.NumberFormat("id-ID", {
-                        style: "currency",
-                        currency: "IDR",
-                        maximumFractionDigits: 0,
-                      }).format(order.total_price)}
+                      {formatCurrency(order.total_price)}
                     </p>
                     <span className="text-xs text-slate-500 capitalize">
                       {order.status}

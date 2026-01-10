@@ -1,4 +1,5 @@
 import { Order } from "@/types";
+import { formatCurrency } from "@/utils/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -39,13 +40,6 @@ export function OrderCard({
     }
   };
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(price);
-
   return (
     <Card className="border border-white/10 bg-slate-900/40 backdrop-blur-md overflow-hidden">
       <CardContent className="p-4 space-y-4">
@@ -67,7 +61,7 @@ export function OrderCard({
           </div>
           <div className="text-right">
             <p className="text-lg font-bold text-emerald-400">
-              {formatPrice(order.total_price)}
+              {formatCurrency(order.total_price)}
             </p>
           </div>
         </div>

@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { useState, useEffect, useMemo } from "react";
 import { Loader2, Plus, Upload } from "lucide-react";
 
@@ -230,11 +231,11 @@ export function ServiceForm({
                 <FormItem>
                   <FormLabel className="text-slate-400">Harga (Rp)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
+                    <CurrencyInput
                       placeholder="5000"
-                      {...field}
-                      className="bg-slate-800/50 border-white/10 focus:border-cyan-500/50 font-mono"
+                      value={field.value}
+                      onChange={field.onChange}
+                      className="bg-slate-800/50 border-white/10 focus:border-cyan-500/50"
                     />
                   </FormControl>
                   <FormMessage />

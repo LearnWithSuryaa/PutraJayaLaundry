@@ -31,6 +31,7 @@ import {
   WeeklyRevenueChart,
   DailyRevenueChart,
 } from "@/components/admin/ChartComponents";
+import { formatCurrency } from "@/utils/format";
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -177,7 +178,6 @@ export default function ReportsPage() {
         supabase
           .from("inventory_logs")
           .select("*, inventory_items(name, unit)")
-          .in("change_type", ["restock", "initial"])
           .gte("created_at", startDate)
           .lte("created_at", endDate)
           .order("created_at", { ascending: false })
@@ -188,6 +188,7 @@ export default function ReportsPage() {
         console.error("Error fetching report orders:", ordersRes.error);
 
       setOrders(ordersRes.data || []);
+      console.log("Fetched Logs:", logsRes.data);
       setLogs(logsRes.data || []);
       setLoading(false);
     };
@@ -454,7 +455,7 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard
           title="Pendapatan Hari Ini"
-          value={`Rp ${stats.revenueToday.toLocaleString("id-ID")}`}
+          value={formatCurrency(stats.revenueToday)}
           subtext={`${stats.ordersToday} pesanan baru`}
           icon={Activity}
           trend="Live"
@@ -462,7 +463,7 @@ export default function ReportsPage() {
         />
         <SummaryCard
           title="Pendapatan Minggu Ini"
-          value={`Rp ${stats.revenueThisWeek.toLocaleString("id-ID")}`}
+          value={formatCurrency(stats.revenueThisWeek)}
           subtext="Sejak Senin"
           icon={TrendingUp}
           color="indigo"
@@ -476,10 +477,8 @@ export default function ReportsPage() {
         />
         <SummaryCard
           title="Pendapatan (Lunas)"
-          value={`Rp ${stats.totalRevenue.toLocaleString("id-ID")}`}
-          subtext={`est. +Rp ${stats.potentialRevenue.toLocaleString(
-            "id-ID"
-          )} (Piutang)`}
+          value={formatCurrency(stats.totalRevenue)}
+          subtext={`est. +${formatCurrency(stats.potentialRevenue)} (Piutang)`}
           icon={WalletMinimal}
           color="violet"
         />
@@ -576,15 +575,15 @@ export default function ReportsPage() {
             <Card className="bg-slate-900/60 border-white/10 backdrop-blur-xl lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Package className="text-emerald-400 w-5 h-5" />
-                  Riwayat Restock
+                  <Package className="text-cyan-400 w-5 h-5" />
+                  Riwayat Log Stok
                 </CardTitle>
                 <CardDescription>
-                  Log pemasukan barang bulan ini.
+                  Semua aktivitas keluar/masuk barang bulan ini.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-xl border border-white/5 overflow-hidden">
+                <div className="rounded-xl border border-white/5 overflow-hidden max-h-[250px] overflow-y-auto custom-scrollbar">
                   <table className="w-full text-sm text-left">
                     <thead className="bg-slate-950/50 text-slate-400 font-medium pt-3">
                       <tr>
@@ -613,8 +612,15 @@ export default function ReportsPage() {
                             <td className="px-4 py-3 font-medium text-slate-200">
                               {log.inventory_items?.name || "Unknown"}
                             </td>
-                            <td className="px-4 py-3 text-right text-emerald-400 font-bold">
-                              +{log.change_amount} {log.inventory_items?.unit}
+                            <td
+                              className={`px-4 py-3 text-right font-bold ${
+                                log.change_amount > 0
+                                  ? "text-emerald-400"
+                                  : "text-rose-400"
+                              }`}
+                            >
+                              {log.change_amount > 0 ? "+" : ""}
+                              {log.change_amount} {log.inventory_items?.unit}
                             </td>
                             <td className="px-4 py-3 text-slate-500 italic hidden md:table-cell max-w-[200px] truncate">
                               {log.notes || "-"}
@@ -627,7 +633,7 @@ export default function ReportsPage() {
                             colSpan={4}
                             className="px-4 py-8 text-center text-slate-500"
                           >
-                            Belum ada data restock bulan ini.
+                            Belum ada aktivitas stok bulan ini.
                           </td>
                         </tr>
                       )}

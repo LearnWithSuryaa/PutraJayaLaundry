@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
+import { formatCurrency } from "@/utils/format";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -76,10 +77,7 @@ export function WeeklyRevenueChart({ data }: { data: any[] }) {
               color: "#fff",
             }}
             itemStyle={{ color: "#22d3ee" }}
-            formatter={(value: any) => [
-              `Rp ${value.toLocaleString("id-ID")}`,
-              "Pendapatan",
-            ]}
+            formatter={(value: any) => [formatCurrency(value), "Pendapatan"]}
             cursor={{ fill: "#ffffff05" }}
           />
           <Bar
@@ -141,10 +139,7 @@ export function DailyRevenueChart({ data }: { data: any[] }) {
               borderColor: "#1e293b",
               color: "#fff",
             }}
-            formatter={(value: any) => [
-              `Rp ${value.toLocaleString("id-ID")}`,
-              "Harian",
-            ]}
+            formatter={(value: any) => [formatCurrency(value), "Harian"]}
           />
           <Area
             type="monotone"
