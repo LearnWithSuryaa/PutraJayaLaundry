@@ -1,6 +1,4 @@
-"use client";
-
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createClient } from "@/utils/supabase/client";
@@ -77,6 +75,20 @@ export function OrderForm({ open, onOpenChange, onSuccess }: OrderFormProps) {
     control: form.control,
     name: "items",
   });
+
+  const watchedItems = useWatch({
+    control: form.control,
+    name: "items",
+    defaultValue: [{ name: "", quantity: 1, price: 0, unit: "kg" }],
+  });
+
+  const runningTotal = useMemo(() => {
+    return watchedItems.reduce((acc, curr) => {
+      const price = Number(curr.price) || 0;
+      const quantity = Number(curr.quantity) || 0;
+      return acc + price * quantity;
+    }, 0);
+  }, [watchedItems]);
 
   // Fetch Services on Mount
   useEffect(() => {
@@ -161,18 +173,6 @@ export function OrderForm({ open, onOpenChange, onSuccess }: OrderFormProps) {
       setLoading(false);
     }
   }
-
-  // Calculate Running Total - Memoized for performance
-  const watchedItems = form.watch("items");
-  const runningTotal = useMemo(
-    () =>
-      watchedItems.reduce(
-        (acc, curr) =>
-          acc + (Number(curr.price) || 0) * (Number(curr.quantity) || 0),
-        0
-      ),
-    [watchedItems]
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

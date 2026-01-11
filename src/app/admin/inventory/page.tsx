@@ -127,7 +127,7 @@ export default function InventoryPage() {
           </div>
           <Button
             onClick={() => setIsFormOpen(true)}
-            className="w-full md:w-auto rounded-xl shadow-lg shadow-cyan-500/20 bg-cyan-600 hover:bg-cyan-500 min-h-[48px] font-bold text-white transition-all hover:scale-105"
+            className="w-full md:w-auto rounded-xl shadow-lg shadow-cyan-500/20 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 min-h-[48px] font-bold text-white transition-all hover:scale-105 hover:shadow-cyan-500/40"
           >
             <PlusIcon className="mr-2 h-5 w-5" /> Tambah Barang
           </Button>

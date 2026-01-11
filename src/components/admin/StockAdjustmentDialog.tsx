@@ -36,6 +36,11 @@ export function StockAdjustmentDialog({
   const [type, setType] = useState<"restock" | "usage">(defaultType);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // New State for Expense Integration
+  const [recordExpense, setRecordExpense] = useState(false);
+  const [cost, setCost] = useState("");
+
   const supabase = createClient();
 
   // Reset form when dialog opens/changes
@@ -43,6 +48,8 @@ export function StockAdjustmentDialog({
     if (open) {
       setAmount("");
       setNotes("");
+      setCost("");
+      setRecordExpense(false);
       setType(defaultType);
     }
   }, [open, defaultType]);
@@ -82,9 +89,32 @@ export function StockAdjustmentDialog({
 
       if (logError) throw logError;
 
-      toast.success(
-        `Berhasil ${isRestock ? "menambah" : "mengurangi"} stok ${item.name}`
-      );
+      // 3. (Optional) Record Expense
+      if (isRestock && recordExpense && cost) {
+        const expenseAmount = parseInt(cost.replace(/\D/g, ""));
+        if (!isNaN(expenseAmount) && expenseAmount > 0) {
+          const { error: expenseError } = await supabase
+            .from("expenses")
+            .insert({
+              category: "Restock Barang",
+              amount: expenseAmount,
+              description: `Restock ${item.name} (${qty} ${item.unit})`,
+              expense_date: new Date().toISOString(),
+              payment_method: "Tunai", // Default to Tunai for quick action
+            });
+          if (expenseError) {
+            console.error("Failed to record expense:", expenseError);
+            toast.error("Stok terupdate, tapi gagal catat pengeluaran");
+          } else {
+            toast.success("Stok & Pengeluaran berhasil dicatat!");
+          }
+        }
+      } else {
+        toast.success(
+          `Berhasil ${isRestock ? "menambah" : "mengurangi"} stok ${item.name}`
+        );
+      }
+
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -163,6 +193,42 @@ export function StockAdjustmentDialog({
               autoFocus
             />
           </div>
+
+          {/* Expense Integration UI */}
+          {type === "restock" && (
+            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="recordExpense"
+                  checked={recordExpense}
+                  onChange={(e) => setRecordExpense(e.target.checked)}
+                  className="w-4 h-4 rounded border-emerald-500 text-emerald-500 focus:ring-emerald-500 bg-slate-800"
+                />
+                <Label
+                  htmlFor="recordExpense"
+                  className="text-sm font-medium text-emerald-100 cursor-pointer"
+                >
+                  Catat sebagai Pengeluaran
+                </Label>
+              </div>
+
+              {recordExpense && (
+                <div className="animate-in slide-in-from-top-2 fade-in duration-200">
+                  <Label className="text-xs text-emerald-300 mb-1 block">
+                    Biaya Restock (Rp)
+                  </Label>
+                  <Input
+                    type="number"
+                    placeholder="Contoh: 50000"
+                    value={cost}
+                    onChange={(e) => setCost(e.target.value)}
+                    className="bg-slate-900/50 border-emerald-500/30 text-emerald-400 placeholder:text-emerald-500/30 h-9 text-sm"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label className="text-slate-400">Catatan (Opsional)</Label>
