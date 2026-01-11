@@ -2,6 +2,8 @@ import { createClient } from "@/utils/supabase/server";
 import { DashboardClient } from "./DashboardClient";
 import { Order } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 // Helper function to calculate stats for today
 function calculateStats(ordersData: any[] | null) {
   if (!ordersData || ordersData.length === 0) {
