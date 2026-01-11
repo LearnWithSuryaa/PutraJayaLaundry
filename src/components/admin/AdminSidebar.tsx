@@ -25,7 +25,7 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Order Baru",
+    title: "Order",
     href: "/admin/orders",
     icon: ShoppingBag,
   },
@@ -233,7 +233,6 @@ export function AdminSidebar() {
                 )}
               >
                 <item.icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium">{item.title}</span>
               </Link>
             );
           })}
