@@ -76,9 +76,51 @@ export default async function AdminDashboard() {
     .lt("created_at", endOfDay)
     .order("created_at", { ascending: false });
 
+  // Fetch last 30 days revenue for Target Calculation
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const { data: historicalData } = await supabase
+    .from("orders")
+    .select("total_price")
+    .gte("created_at", thirtyDaysAgo.toISOString())
+    .or("status.eq.paid,status.eq.completed");
+
+  const totalRevenue30Days =
+    historicalData?.reduce(
+      (acc, curr) => acc + (Number(curr.total_price) || 0),
+      0
+    ) || 0;
+  const averageDailyRevenue = totalRevenue30Days / 30; // Simple average
+  const dailyTarget = Math.max(averageDailyRevenue * 1.1, 100000); // Target +10% growth, min 100k
+
   // Calculate stats on server (today's data only)
   const stats = calculateStats(ordersData);
+
+  // Augment stats with dynamic insights
+  const progress =
+    dailyTarget > 0 ? (stats.totalRevenue / dailyTarget) * 100 : 0;
+  let insightMessage = "Mulai hari ini dengan semangat!";
+
+  if (progress >= 100) insightMessage = "Luar biasa! Target hari ini tercapai.";
+  else if (progress >= 75) insightMessage = "Sedikit lagi mencapai target!";
+  else if (progress >= 50) insightMessage = "Performa bagus, teruskan!";
+  else if (stats.totalRevenue > 0)
+    insightMessage = "Awal yang baik, kejar target!";
+
+  const enhancedStats = {
+    ...stats,
+    dailyTarget,
+    revenueProgress: progress,
+    insightMessage,
+  };
+
   const recentOrders = (ordersData?.slice(0, 5) || []) as Order[];
 
-  return <DashboardClient initialStats={stats} initialOrders={recentOrders} />;
+  return (
+    <DashboardClient
+      initialStats={enhancedStats}
+      initialOrders={recentOrders}
+    />
+  );
 }
