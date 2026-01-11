@@ -122,6 +122,7 @@ export function InventoryForm({
         const { data: newItem, error: createError } = await supabase
           .from("inventory_items")
           .insert(values)
+          // RLS: user_id is automatically assigned via DEFAULT auth.uid()
           .select() // Select to get ID
           .single();
 
