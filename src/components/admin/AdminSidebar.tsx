@@ -12,6 +12,8 @@ import {
   TrendingUp,
   Menu,
   X,
+  BarChart3,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,16 @@ const menuItems = [
     title: "Laporan",
     href: "/admin/reports",
     icon: TrendingUp,
+  },
+  {
+    title: "Analytics",
+    href: "/admin/analytics",
+    icon: BarChart3,
+  },
+  {
+    title: "Keuangan",
+    href: "/admin/finance",
+    icon: Wallet,
   },
 ];
 
@@ -207,7 +219,7 @@ export function AdminSidebar() {
       {/* Bottom Navigation for Mobile (Alternative) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-xl border-t border-white/10">
         <div className="flex items-center justify-around h-16 px-2">
-          {menuItems.slice(0, 5).map((item) => {
+          {menuItems.slice(0, 7).map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
