@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { Service } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import { Plus, Trash2, Edit2, Loader2 } from "lucide-react";
 import { ServiceForm } from "@/components/admin/ServiceForm";
 
 export default function ServicesPage() {
+  const supabase = createClient();
   const [services, setServices] = useState<Service[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | undefined>(
