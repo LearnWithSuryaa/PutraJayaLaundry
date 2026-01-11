@@ -1,3 +1,4 @@
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,5 +10,10 @@ export default function AdminLoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      {children}
+      <InstallPrompt />
+    </>
+  );
 }

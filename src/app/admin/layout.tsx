@@ -1,3 +1,4 @@
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import type { Metadata } from "next";
 
@@ -18,6 +19,7 @@ export default function AdminLayout({
         <div className="pt-16 pb-20 md:pt-0 md:pb-0 min-h-screen">
           <div className="container mx-auto p-4 md:p-8">{children}</div>
         </div>
+        <InstallPrompt />
       </main>
     </div>
   );
