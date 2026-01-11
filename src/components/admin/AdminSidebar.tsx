@@ -146,6 +146,9 @@ export function AdminSidebar() {
               </div>
             </div>
             <Button
+              onClick={async () => {
+                await logout();
+              }}
               variant="ghost"
               className="w-full justify-start text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-2"
             >
@@ -207,6 +210,9 @@ export function AdminSidebar() {
               </div>
             </div>
             <Button
+              onClick={async () => {
+                await logout();
+              }}
               variant="ghost"
               className="w-full justify-start text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-2"
             >
