@@ -15,11 +15,12 @@ export async function login(prevState: any, formData: FormData) {
     password,
   });
 
-  console.log("Login attempt:", email, "Error:", error);
-
   if (error) {
+    console.error("Login failed:", error.message);
     return { error: "Login gagal. Periksa email dan password Anda." };
   }
+
+  console.log("Login successful for:", email);
 
   revalidatePath("/admin", "layout");
   redirect("/admin/orders");
