@@ -225,15 +225,15 @@ export function AdminSidebar() {
 
       {/* Bottom Navigation for Mobile (Alternative) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-xl border-t border-white/10">
-        <div className="flex items-center justify-around h-16 px-2">
-          {menuItems.slice(0, 7).map((item) => {
+        <div className="grid grid-cols-7 items-center h-16 px-1 gap-1">
+          {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all min-w-[60px]",
+                  "flex flex-col items-center justify-center p-2 rounded-lg transition-all",
                   isActive
                     ? "text-cyan-400 bg-cyan-500/10"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
