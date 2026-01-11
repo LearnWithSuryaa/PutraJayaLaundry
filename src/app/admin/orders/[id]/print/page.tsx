@@ -11,7 +11,36 @@ export default function PrintOrderPage() {
   const id = params?.id as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Settings State
+  const [settings, setSettings] = useState({
+    storeName: "PUTRAJAYA LAUNDRY",
+    storeAddress: "Jl. Kelapa No. 141 RT/RW 07/02\nKabunan, Balen, Bojonegoro",
+    storePhone: "0812-3205-2919",
+    receiptHeader: "TERIMA KASIH",
+    receiptFooter:
+      "1. Barang tidak diambil 30 hari menjadi hak laundry\n2. Komplain maksimal 2x24 jam setelah pengambilan",
+  });
+
   const supabase = createClient();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("rynse_settings");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setSettings({
+        storeName: parsed.storeName || "PUTRAJAYA LAUNDRY",
+        storeAddress:
+          parsed.storeAddress ||
+          "Jl. Kelapa No. 141 RT/RW 07/02\nKabunan, Balen, Bojonegoro",
+        storePhone: parsed.storePhone || "0812-3205-2919",
+        receiptHeader: parsed.receiptHeader || "TERIMA KASIH",
+        receiptFooter:
+          parsed.receiptFooter ||
+          "1. Barang tidak diambil 30 hari menjadi hak laundry\n2. Komplain maksimal 2x24 jam setelah pengambilan",
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -46,31 +75,48 @@ export default function PrintOrderPage() {
   if (!order) return <div className="text-center p-8">Order not found</div>;
 
   return (
-    <div className="w-[58mm] p-3 bg-white text-black font-mono text-[10px] leading-tight">
+    <div className="w-[58mm] min-h-screen bg-white text-black p-2 font-sans text-[10px] leading-tight">
+      <style jsx global>{`
+        @page {
+          size: 58mm auto;
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          background: white;
+        }
+        @media print {
+          body {
+            -webkit-print-color-adjust: exact;
+          }
+        }
+      `}</style>
+
       {/* Header - Company Info */}
-      <div className="text-center mb-3">
-        <h1 className="font-bold text-[16px] uppercase tracking-wide mb-1">
-          PUTRAJAYA LAUNDRY
+      <div className="text-center mb-2">
+        <h1 className="font-extrabold text-[14px] uppercase tracking-wider mb-0.5">
+          {settings.storeName}
         </h1>
-        <div className="text-[9px] leading-relaxed">
-          <p>Jl. Kelapa No. 141 RT/RW 07/02</p>
-          <p>Kabunan, Balen, Bojonegoro</p>
-          <p className="mt-1">Telp/WA: 0812-3205-2919</p>
+        <div className="text-[9px] font-medium leading-snug whitespace-pre-line text-gray-800">
+          {settings.storeAddress}
+          <p className="mt-0.5">Telp/WA: {settings.storePhone}</p>
         </div>
       </div>
 
-      <div className="border-t border-b border-black border-dashed py-2 mb-3">
-        <p className="text-center font-bold text-[11px]">NOTA TRANSAKSI</p>
+      <div className="border-b-2 border-black border-dashed pb-1 mb-2">
+        <p className="text-center font-bold text-[10px] tracking-wide">
+          NOTA TRANSAKSI
+        </p>
       </div>
 
       {/* Transaction Info */}
-      <div className="mb-3 text-[9px] space-y-0.5">
+      <div className="mb-2 text-[9px] space-y-0.5 font-mono">
         <div className="flex justify-between">
-          <span className="font-semibold">No. Nota</span>
-          <span>#{order.id}</span>
+          <span>No. Nota:</span>
+          <span className="font-bold">#{order.id}</span>
         </div>
         <div className="flex justify-between">
-          <span className="font-semibold">Tanggal</span>
+          <span>Tanggal:</span>
           <span>
             {new Date(order.created_at).toLocaleDateString("id-ID", {
               day: "2-digit",
@@ -80,7 +126,7 @@ export default function PrintOrderPage() {
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="font-semibold">Waktu</span>
+          <span>Waktu:</span>
           <span>
             {new Date(order.created_at).toLocaleTimeString("id-ID", {
               hour: "2-digit",
@@ -89,43 +135,42 @@ export default function PrintOrderPage() {
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="font-semibold">Pelanggan</span>
-          <span className="uppercase">{order.customer_name}</span>
+          <span>Plg:</span>
+          <span className="uppercase font-bold truncate max-w-[120px] text-right">
+            {order.customer_name}
+          </span>
         </div>
         <div className="flex justify-between">
-          <span className="font-semibold">No. HP</span>
+          <span>HP:</span>
           <span>{order.customer_phone}</span>
         </div>
       </div>
 
       {/* Items Table */}
-      <div className="border-t border-black pt-2 mb-2">
-        <table className="w-full text-[9px]">
+      <div className="border-t-2 border-black border-dashed pt-1 mb-2">
+        <table className="w-full text-[9px] font-mono leading-tight">
           <thead>
             <tr className="border-b border-black border-dashed">
-              <th className="text-left py-1 font-semibold">ITEM</th>
-              <th className="text-center py-1 font-semibold">QTY</th>
-              <th className="text-right py-1 font-semibold">HARGA</th>
+              <th className="text-left py-1 w-[45%]">ITEM</th>
+              <th className="text-center py-1 w-[20%]">QTY</th>
+              <th className="text-right py-1 w-[35%]">TOTAL</th>
             </tr>
           </thead>
           <tbody>
             {(order.order_items || []).map((item, idx) => (
-              <tr key={idx} className="border-b border-dashed border-gray-300">
-                <td className="py-1.5 pr-1">
-                  <div className="font-medium">
+              <tr key={idx} className="">
+                <td className="py-1 pr-1 align-top">
+                  <div className="font-bold uppercase truncate w-[24mm] block">
                     {item.service_name || item.name}
                   </div>
                   <div className="text-[8px] text-gray-600">
-                    @Rp{" "}
-                    {Number(item.service_price || 0).toLocaleString("id-ID")} /{" "}
-                    {item.unit}
+                    {Number(item.service_price || 0).toLocaleString("id-ID")}
                   </div>
                 </td>
-                <td className="text-center py-1.5 whitespace-nowrap">
-                  {item.quantity} {item.unit}
+                <td className="text-center py-1 align-top text-[8px]">
+                  x{item.quantity} {item.unit}
                 </td>
-                <td className="text-right py-1.5 font-medium">
-                  Rp{" "}
+                <td className="text-right py-1 align-top font-bold">
                   {(
                     Number(item.service_price || 0) * Number(item.quantity)
                   ).toLocaleString("id-ID")}
@@ -137,20 +182,20 @@ export default function PrintOrderPage() {
       </div>
 
       {/* Total Section */}
-      <div className="border-t border-black pt-2 mb-3">
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-bold text-[11px]">TOTAL PEMBAYARAN</span>
-          <span className="font-bold text-[12px]">
+      <div className="border-t-2 border-black border-dashed pt-1 mb-3 font-mono">
+        <div className="flex justify-between items-center mb-1 text-[11px]">
+          <span className="font-bold">TOTAL</span>
+          <span className="font-extrabold text-[12px]">
             Rp {order.total_price.toLocaleString("id-ID")}
           </span>
         </div>
         <div className="flex justify-between items-center text-[9px]">
-          <span className="font-semibold">Status Pembayaran</span>
+          <span className="font-semibold">STATUS</span>
           <span
-            className={`font-bold uppercase ${
+            className={`font-bold uppercase border px-1 rounded ${
               order.status === "paid" || order.status === "completed"
-                ? "text-black"
-                : "text-gray-600"
+                ? "border-black text-black"
+                : "border-gray-400 text-gray-500"
             }`}
           >
             {order.status === "paid" || order.status === "completed"
@@ -162,58 +207,34 @@ export default function PrintOrderPage() {
 
       {/* Notes Section */}
       {order.notes && (
-        <div className="border-t border-dashed border-gray-400 pt-2 mb-3">
-          <p className="font-semibold text-[9px] mb-0.5">Catatan:</p>
-          <p className="text-[8px] italic">{order.notes}</p>
+        <div className="border-t border-black border-dashed pt-1 mb-2">
+          <p className="font-bold text-[9px]">Catatan:</p>
+          <p className="text-[9px] italic leading-tight">{order.notes}</p>
         </div>
       )}
 
       {/* Footer */}
-      <div className="border-t border-black pt-2.5 mt-3">
-        <p className="text-center font-bold text-[11px] mb-2.5">TERIMA KASIH</p>
+      <div className="border-t-2 border-black border-dashed pt-2 mt-2 text-center">
+        <p className="font-bold text-[10px] mb-1 uppercase">
+          {settings.receiptHeader}
+        </p>
 
         {/* Terms and Conditions */}
-        <div className="text-[8px] leading-relaxed mb-2.5">
-          <p className="font-semibold mb-1 text-center">
-            Syarat dan Ketentuan:
-          </p>
-          <div className="space-y-0.5 text-left px-1">
-            <p>1. Barang tidak diambil 30 hari menjadi hak laundry</p>
-            <p>2. Komplain maksimal 2x24 jam setelah pengambilan</p>
+        <div className="text-[8px] leading-snug mb-2 text-justify">
+          <p className="font-bold text-center mb-0.5">Syarat & Ketentuan:</p>
+          <div className="whitespace-pre-line px-1">
+            {settings.receiptFooter}
           </div>
         </div>
 
-        {/* Customer Service */}
-        <div className="border-t border-dashed border-gray-400 pt-2 text-center">
-          <p className="text-[8px] font-semibold mb-0.5">Layanan Pelanggan</p>
-          <p className="text-[8px]">www.putrajayalaundry.com</p>
-          <p className="text-[8px] mt-1">WA: 0812-3205-2919</p>
-        </div>
-
-        {/* Print timestamp */}
-        <div className="mt-2 pt-2 border-t border-dashed border-gray-300">
-          <p className="text-center text-[7px] text-gray-500">
-            Dicetak: {new Date().toLocaleString("id-ID")}
+        {/* Small branding */}
+        <div className="mt-2 pt-1 border-t border-gray-300">
+          <p className="text-[8px] font-mono">
+            {new Date().toLocaleString("id-ID")}
           </p>
+          <p className="text-[7px] text-gray-500 mt-0.5">Powered by Rynse</p>
         </div>
       </div>
-
-      <style jsx global>{`
-        @page {
-          size: 58mm auto;
-          margin: 0;
-        }
-        body {
-          margin: 0;
-          background: white;
-        }
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-        }
-      `}</style>
     </div>
   );
 }
