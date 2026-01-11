@@ -1,5 +1,6 @@
 export type Service = {
   id: string;
+  user_id?: string; // Added for RLS
   name: string;
   price: number;
   unit: string;
@@ -22,6 +23,7 @@ export type OrderItem = {
 
 export type Order = {
   id: number;
+  user_id?: string; // Added for RLS
   customer_name: string;
   customer_phone: string;
   // items: OrderItem[]; // Deprecated JSON column
@@ -34,6 +36,7 @@ export type Order = {
 
 export interface InventoryItem {
   id: number;
+  user_id?: string; // Added for RLS
   name: string;
   stock: number;
   unit: string;
