@@ -20,6 +20,12 @@ export const metadata: Metadata = {
   description: "Layanan laundry premium dengan antar jemput gratis.",
   icons: {
     icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PutraJaya Laundry",
   },
 };
 

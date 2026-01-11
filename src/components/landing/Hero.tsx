@@ -20,7 +20,7 @@ export function Hero() {
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-10"
     >
       {/* 2. Glass Overlay Texture */}
-      <div className="absolute inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+      <div className="absolute inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-size-[32px_32px] gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%) pointer-events-none" />
 
       <div className="container px-4 md:px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
@@ -50,12 +50,12 @@ export function Hero() {
               className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1]"
             >
               Wangi{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400">
                 Premium.
               </span>{" "}
               <br />
               Hidup{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400">
                 Praktis.
               </span>
             </motion.h1>
@@ -136,7 +136,7 @@ export function Hero() {
           </div>
 
           {/* Right Column: Visual Glass Card */}
-          <div className="relative hidden lg:block h-[600px] w-full">
+          <div className="relative hidden lg:block h-150 w-full">
             {/* 1. Main Card: Cuci Komplit (Top Right) */}
             <motion.div
               animate={{ y: [0, -20, 0] }}
@@ -144,9 +144,9 @@ export function Hero() {
               className="absolute top-6 right-6 z-20"
             >
               <div className="relative w-72 h-auto bg-slate-900/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl p-5 flex flex-col gap-6 transform rotate-3 hover:rotate-0 transition-all duration-500 group">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-[2rem] pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent rounded-[2rem] pointer-events-none" />
                 <div className="flex justify-between items-start relative z-10">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-2xl bg-linear-to-tr from-primary to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 group-hover:scale-110 transition-transform">
                     <Sparkles className="w-6 h-6" />
                   </div>
                   <Badge
@@ -179,9 +179,9 @@ export function Hero() {
               className="absolute bottom-28 left-6 z-30"
             >
               <div className="relative w-64 h-auto bg-slate-900/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl p-5 flex flex-col gap-5 transform -rotate-2 hover:rotate-0 transition-all duration-500 group">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-[2rem] pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent rounded-[2rem] pointer-events-none" />
                 <div className="flex justify-between items-start relative z-10">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-2xl bg-linear-to-tr from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
                     <Zap className="w-6 h-6" fill="currentColor" />
                   </div>
                   <Badge
@@ -214,7 +214,7 @@ export function Hero() {
               className="absolute bottom-8 right-8 z-10"
             >
               <div className="w-auto h-auto bg-slate-900/40 backdrop-blur-md border border-white/20 rounded-full shadow-lg flex items-center gap-3 px-4 py-2 transform rotate-1 hover:rotate-0 transition-all duration-500">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_theme(colors.green.400)]" />
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_var(--color-green-400)]" />
                 <p className="text-xs font-semibold text-slate-200 uppercase tracking-wide">
                   Outlet Buka
                 </p>
