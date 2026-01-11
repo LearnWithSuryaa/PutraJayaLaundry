@@ -28,4 +28,4 @@ SET user_id = '38ac30a9-7504-4ec0-a22d-295c1fa7f656'
 WHERE user_id IS NOT NULL;
 
 -- 3. Verify
--- SELECT * FROM services;
+SELECT * FROM services;
