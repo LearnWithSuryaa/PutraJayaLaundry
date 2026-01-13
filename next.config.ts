@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   // Enable compression for faster data transfer
   compress: true,
 
+  // Standalone build for Vercel/Docker optimization
+  output: "standalone",
+
   // Optimize images
   images: {
     formats: ["image/avif", "image/webp"],

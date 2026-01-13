@@ -32,6 +32,8 @@ import {
   DailyRevenueChart,
 } from "@/components/admin/ChartComponents";
 import { formatCurrency } from "@/utils/format";
+import { generateMonthlyReport } from "@/utils/report-generator";
+import { Download, FileSpreadsheet } from "lucide-react";
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,7 @@ export default function ReportsPage() {
   // States
   const [orders, setOrders] = useState<any[]>([]); // Historical (Filtered)
   const [logs, setLogs] = useState<any[]>([]); // Historical (Filtered)
+  const [expenses, setExpenses] = useState<any[]>([]); // Historical (Filtered)
 
   const [liveOrders, setLiveOrders] = useState<any[]>([]); // Live (Static)
   const [inventory, setInventory] = useState<any[]>([]); // Live (Static)
@@ -162,7 +165,7 @@ export default function ReportsPage() {
         ).toISOString();
       }
 
-      const [ordersRes, logsRes] = await Promise.all([
+      const [ordersRes, logsRes, expensesRes] = await Promise.all([
         // Fetch Selected Month Data - Optimized query
         supabase
           .from("orders")
@@ -182,19 +185,37 @@ export default function ReportsPage() {
           .lte("created_at", endDate)
           .order("created_at", { ascending: false })
           .range(0, 499), // Reduced from 1000
+
+        // Expenses (Selected Month)
+        supabase
+          .from("expenses")
+          .select("*")
+          .gte("expense_date", startDate)
+          .lte("expense_date", endDate)
+          .order("expense_date", { ascending: false }),
       ]);
 
       if (ordersRes.error)
         console.error("Error fetching report orders:", ordersRes.error);
 
       setOrders(ordersRes.data || []);
-      console.log("Fetched Logs:", logsRes.data);
+      // console.log("Fetched Logs:", logsRes.data);
       setLogs(logsRes.data || []);
+      setExpenses(expensesRes.data || []);
+
       setLoading(false);
     };
 
     fetchReportData();
   }, [supabase, selectedMonth, selectedYear, selectedDate]); // Run on filter change
+
+  const handleDownload = () => {
+    generateMonthlyReport(orders, logs, expenses, stats, {
+      month: selectedMonth,
+      year: selectedYear,
+      date: selectedDate,
+    });
+  };
 
   // --- ALGORITHMS & STATS ---
 
@@ -398,6 +419,17 @@ export default function ReportsPage() {
                   )}`
                 : "Analisis performa bisnis dan inventaris Anda."}
             </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownload}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span className="hidden sm:inline">Export Excel</span>
+            </button>
           </div>
 
           {/* Filters - Stack on mobile */}
