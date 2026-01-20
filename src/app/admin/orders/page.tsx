@@ -141,14 +141,18 @@ export default function OrdersPage() {
           ? order.order_items
             .map((i, idx) => {
               const rawTotal = Number(i.service_price || 0) * Number(i.quantity);
-              const roundedTotal = calculateRoundedPrice(Number(i.service_price), Number(i.quantity));
-
-              return `${idx + 1}. ${i.service_name || i.name}\n   ${i.quantity} ${i.unit} x ${formatPrice(Number(i.service_price))}\n   (Hitungan: ${formatPrice(rawTotal)} menjadi *${formatPrice(roundedTotal)}*)`;
+              return `${idx + 1}. ${i.service_name || i.name}\n   ${i.quantity} ${i.unit} x ${formatPrice(Number(i.service_price))}`;
             })
             .join("\n\n")
           : "- Item tidak tersedia";
 
-      message = `Halo Kak *${order.customer_name}*,\nTerima kasih sudah laundry di PutraJaya Laundry. Berikut rincian pesanan kakak ya:\n\nNo. Nota: #${order.id}\nWaktu: ${date}\n\n*Rincian Laundry:*\n${itemsList}\n\n*Total Tagihan: ${formatPrice(order.total_price)}*\nStatus: ${order.status.toUpperCase()}\n\n_Catatan: ${order.notes || "-"}_ \n\nTerima kasih, ditunggu order berikutnya ya Kak!`;
+      // Calculate Subtotal and Rounding for Message
+      const subtotal = (order.order_items || []).reduce((acc, item) => {
+        return acc + (Number(item.service_price || 0) * Number(item.quantity));
+      }, 0);
+      const rounding = order.total_price - subtotal;
+
+      message = `Halo Kak *${order.customer_name}*,\nTerima kasih sudah laundry di PutraJaya Laundry. Berikut rincian pesanan kakak ya:\n\nNo. Nota: #${order.id}\nWaktu: ${date}\n\n*Rincian Laundry:*\n${itemsList}\n\nSubtotal: ${formatPrice(subtotal)}\nPembulatan: ${formatPrice(rounding)}\n--------------------------\n*Total: ${formatPrice(order.total_price)}*\n\nStatus: ${order.status.toUpperCase()}\n\n_Catatan: ${order.notes || "-"}_ \n\nTerima kasih, ditunggu order berikutnya ya Kak!`;
     } else {
       // 2. STATUS UPDATE TEMPLATE
       const statusMap: Record<string, string> = {

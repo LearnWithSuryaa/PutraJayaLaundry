@@ -183,11 +183,7 @@ export default function PrintOrderPage() {
                     </div>
 
                     {/* Line 3: Rounding Detail (if any) */}
-                    {isRounded && (
-                      <div className="text-[8px] text-gray-500 italic pl-2 mt-0.5">
-                        (Hitungan: {rawTotal.toLocaleString("id-ID")} menjadi {roundedTotal.toLocaleString("id-ID")})
-                      </div>
-                    )}
+
                   </td>
                 </tr>
               );
@@ -198,12 +194,35 @@ export default function PrintOrderPage() {
 
       {/* Total Section */}
       <div className="border-t-2 border-black border-dashed pt-1 mb-3 font-mono">
-        <div className="flex justify-between items-center mb-1 text-[11px]">
-          <span className="font-bold">TOTAL</span>
-          <span className="font-extrabold text-[12px]">
-            Rp {order.total_price.toLocaleString("id-ID")}
-          </span>
-        </div>
+        {(() => {
+          // Calculate Subtotal (Sum of Raw Prices)
+          const subtotal = (order.order_items || []).reduce((acc, item) => {
+            return acc + (Number(item.service_price || 0) * Number(item.quantity));
+          }, 0);
+
+          const rounding = order.total_price - subtotal;
+
+          return (
+            <>
+              <div className="flex justify-between items-center mb-0.5 text-[9px]">
+                <span>Subtotal</span>
+                <span>Rp {subtotal.toLocaleString("id-ID")}</span>
+              </div>
+              <div className="flex justify-between items-center mb-1 text-[9px]">
+                <span>Pembulatan</span>
+                <span>Rp {rounding.toLocaleString("id-ID")}</span>
+              </div>
+              <div className="border-t border-black border-dashed my-1"></div>
+              <div className="flex justify-between items-center mb-1 text-[11px]">
+                <span className="font-bold">TOTAL</span>
+                <span className="font-extrabold text-[12px]">
+                  Rp {order.total_price.toLocaleString("id-ID")}
+                </span>
+              </div>
+            </>
+          );
+        })()}
+
         <div className="flex justify-between items-center text-[9px]">
           <span className="font-semibold">STATUS</span>
           <span
@@ -246,7 +265,7 @@ export default function PrintOrderPage() {
           <p className="text-[8px] font-mono">
             {new Date().toLocaleString("id-ID")}
           </p>
-          <p className="text-[7px] text-gray-500 mt-0.5">Powered by Rynse</p>
+          <p className="text-[7px] text-gray-500 mt-0.5">Powered by PutraJayaLaundry</p>
         </div>
       </div>
     </div>
