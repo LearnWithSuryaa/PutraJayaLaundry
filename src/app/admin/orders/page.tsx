@@ -32,8 +32,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
-import { calculateRoundedPrice } from "@/utils/pricing";
-
 const ITEMS_PER_PAGE = 20;
 
 export default function OrdersPage() {
@@ -134,16 +132,15 @@ export default function OrdersPage() {
       // 1. NOTA FRIENDLY FORMAT
       const date = new Date(order.created_at).toLocaleDateString("id-ID", {
         day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
-      });
+      }).replace(/\./g, '/').replace(' pukul', ','); // 21/01/2026, 01.34
 
       const itemsList =
         order.order_items && order.order_items.length > 0
           ? order.order_items
-            .map((i, idx) => {
-              const rawTotal = Number(i.service_price || 0) * Number(i.quantity);
-              return `${idx + 1}. ${i.service_name || i.name}\n   ${i.quantity} ${i.unit} x ${formatPrice(Number(i.service_price))}`;
+            .map((i) => {
+              return `- ${i.service_name || i.name}\n  ${i.quantity} ${i.unit} × ${formatPrice(Number(i.service_price))}`;
             })
-            .join("\n\n")
+            .join("\n")
           : "- Item tidak tersedia";
 
       // Calculate Subtotal and Rounding for Message
@@ -152,7 +149,29 @@ export default function OrdersPage() {
       }, 0);
       const rounding = order.total_price - subtotal;
 
-      message = `Halo Kak *${order.customer_name}*,\nTerima kasih sudah laundry di PutraJaya Laundry. Berikut rincian pesanan kakak ya:\n\nNo. Nota: #${order.id}\nWaktu: ${date}\n\n*Rincian Laundry:*\n${itemsList}\n\nSubtotal: ${formatPrice(subtotal)}\nPembulatan: ${formatPrice(rounding)}\n--------------------------\n*Total: ${formatPrice(order.total_price)}*\n\nStatus: ${order.status.toUpperCase()}\n\n_Catatan: ${order.notes || "-"}_ \n\nTerima kasih, ditunggu order berikutnya ya Kak!`;
+      const roundingSign = rounding > 0 ? "+" : "";
+      const formattedRounding = `${roundingSign}${formatPrice(rounding).replace("Rp", "").trim()}`;
+
+      message = `Halo Kak ${order.customer_name},
+Terima kasih sudah menggunakan layanan PutraJaya Laundry.
+Berikut rincian pesanan Kakak:
+
+No. Nota : #${order.id}
+Waktu    : ${date.replace(', ', ', ').replace(/\//g, '/')}
+
+Rincian Laundry:
+${itemsList}
+
+Subtotal   : ${formatPrice(subtotal)}
+Pembulatan : Rp ${formattedRounding}
+--------------------------
+Total Bayar: ${formatPrice(order.total_price)}
+
+Status: ${order.status.toUpperCase()}
+
+Catatan: ${order.notes || "-"}
+> "Total dibulatkan ke kelipatan Rp1.000"
+Terima kasih, ditunggu order berikutnya ya Kak!`;
     } else {
       // 2. STATUS UPDATE TEMPLATE
       const statusMap: Record<string, string> = {
