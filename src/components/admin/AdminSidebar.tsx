@@ -14,6 +14,7 @@ import {
   X,
   BarChart3,
   Wallet,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,11 @@ const menuItems = [
     href: "/admin/finance",
     icon: Wallet,
   },
+  {
+    title: "Pengaturan",
+    href: "/admin/settings",
+    icon: Settings,
+  },
 ];
 
 export function AdminSidebar() {
@@ -93,7 +99,7 @@ export function AdminSidebar() {
       <aside
         className={cn(
           "md:hidden fixed top-0 left-0 bottom-0 w-72 z-50 bg-slate-950 border-r border-white/10 transform transition-transform duration-300 ease-in-out flex flex-col",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex h-16 items-center px-6 border-b border-white/10">
@@ -115,7 +121,7 @@ export function AdminSidebar() {
                       "flex items-center gap-3 rounded-xl px-4 py-3.5 transition-all duration-300 group",
                       isActive
                         ? "bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.1)] border border-cyan-500/20"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        : "text-slate-400 hover:text-white hover:bg-white/5",
                     )}
                   >
                     <item.icon
@@ -123,7 +129,7 @@ export function AdminSidebar() {
                         "w-5 h-5 transition-colors",
                         isActive
                           ? "text-cyan-400"
-                          : "text-slate-500 group-hover:text-white"
+                          : "text-slate-500 group-hover:text-white",
                       )}
                     />
                     {item.title}
@@ -179,7 +185,7 @@ export function AdminSidebar() {
                       "flex items-center gap-3 rounded-xl px-4 py-3.5 transition-all duration-300 group",
                       isActive
                         ? "bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.1)] border border-cyan-500/20"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        : "text-slate-400 hover:text-white hover:bg-white/5",
                     )}
                   >
                     <item.icon
@@ -187,7 +193,7 @@ export function AdminSidebar() {
                         "w-5 h-5 transition-colors",
                         isActive
                           ? "text-cyan-400"
-                          : "text-slate-500 group-hover:text-white"
+                          : "text-slate-500 group-hover:text-white",
                       )}
                     />
                     {item.title}
@@ -236,7 +242,7 @@ export function AdminSidebar() {
                   "flex flex-col items-center justify-center p-2 rounded-lg transition-all",
                   isActive
                     ? "text-cyan-400 bg-cyan-500/10"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    : "text-slate-400 hover:text-white hover:bg-white/5",
                 )}
               >
                 <item.icon className="w-5 h-5" />

@@ -25,7 +25,7 @@ import {
   Activity,
   WalletMinimal,
 } from "lucide-react";
-import { format, isSameDay, startOfWeek } from "date-fns";
+import { format, isSameDay, startOfWeek, parseISO, getDate } from "date-fns";
 import { id } from "date-fns/locale";
 import {
   WeeklyRevenueChart,
@@ -33,7 +33,7 @@ import {
 } from "@/components/admin/ChartComponents";
 import { formatCurrency } from "@/utils/format";
 import { generateMonthlyReport } from "@/utils/report-generator";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet } from "lucide-react";
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -48,14 +48,29 @@ export default function ReportsPage() {
   const [inventory, setInventory] = useState<any[]>([]); // Live (Static)
 
   const [selectedMonth, setSelectedMonth] = useState(
-    new Date().getMonth().toString()
+    new Date().getMonth().toString(),
   );
   const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear().toString()
+    new Date().getFullYear().toString(),
   );
   const [selectedDate, setSelectedDate] = useState<string>(""); // Empty means monthly view
+  const [reportType, setReportType] = useState<"monthly" | "daily">("monthly");
+  const [salaryPerDay, setSalaryPerDay] = useState(50000); // Default
 
   const supabase = useMemo(() => createClient(), []);
+
+  // Load Settings
+  useEffect(() => {
+    const savedSalary = localStorage.getItem("rynse_salary_settings");
+    if (savedSalary) {
+      try {
+        const parsed = JSON.parse(savedSalary);
+        if (parsed.salaryPerDay) setSalaryPerDay(parsed.salaryPerDay);
+      } catch (e) {
+        console.error("Failed to parse salary settings", e);
+      }
+    }
+  }, []);
 
   // 1. FETCH STATIC / LIVE DATA (Once on Mount)
   useEffect(() => {
@@ -70,7 +85,7 @@ export default function ReportsPage() {
         supabase
           .from("orders")
           .select(
-            "id, status, total_price, created_at, order_items(quantity, unit)"
+            "id, status, total_price, created_at, order_items(quantity, unit)",
           )
           .gte("created_at", startOfLiveWeek)
           .range(0, 999), // Reduced from 4999
@@ -116,52 +131,52 @@ export default function ReportsPage() {
           weekStartsOn: 1,
         });
         const startJakarta = new Date(
-          selectedWeekStart.getTime() + offsetDiff * 60 * 1000
+          selectedWeekStart.getTime() + offsetDiff * 60 * 1000,
         );
         startJakarta.setHours(0, 0, 0, 0);
         startDate = new Date(
-          startJakarta.getTime() - offsetDiff * 60 * 1000
+          startJakarta.getTime() - offsetDiff * 60 * 1000,
         ).toISOString();
 
         // Get end of week (Sunday) for selected date
         const selectedWeekEnd = new Date(selectedWeekStart);
         selectedWeekEnd.setDate(selectedWeekEnd.getDate() + 7);
         const endJakarta = new Date(
-          selectedWeekEnd.getTime() + offsetDiff * 60 * 1000
+          selectedWeekEnd.getTime() + offsetDiff * 60 * 1000,
         );
         endJakarta.setHours(23, 59, 59, 999);
         endDate = new Date(
-          endJakarta.getTime() - offsetDiff * 60 * 1000
+          endJakarta.getTime() - offsetDiff * 60 * 1000,
         ).toISOString();
       } else {
         // Monthly view in Jakarta timezone
         const monthStart = new Date(
           parseInt(selectedYear),
           parseInt(selectedMonth),
-          1
+          1,
         );
         const localOffset = monthStart.getTimezoneOffset();
         const offsetDiff = jakartaOffset + localOffset;
 
         const startJakarta = new Date(
-          monthStart.getTime() + offsetDiff * 60 * 1000
+          monthStart.getTime() + offsetDiff * 60 * 1000,
         );
         startJakarta.setHours(0, 0, 0, 0);
         startDate = new Date(
-          startJakarta.getTime() - offsetDiff * 60 * 1000
+          startJakarta.getTime() - offsetDiff * 60 * 1000,
         ).toISOString();
 
         const monthEnd = new Date(
           parseInt(selectedYear),
           parseInt(selectedMonth) + 1,
-          0
+          0,
         );
         const endJakarta = new Date(
-          monthEnd.getTime() + offsetDiff * 60 * 1000
+          monthEnd.getTime() + offsetDiff * 60 * 1000,
         );
         endJakarta.setHours(23, 59, 59, 999);
         endDate = new Date(
-          endJakarta.getTime() - offsetDiff * 60 * 1000
+          endJakarta.getTime() - offsetDiff * 60 * 1000,
         ).toISOString();
       }
 
@@ -170,7 +185,7 @@ export default function ReportsPage() {
         supabase
           .from("orders")
           .select(
-            "id, status, total_price, created_at, order_items(quantity, unit)"
+            "id, status, total_price, created_at, order_items(quantity, unit)",
           )
           .gte("created_at", startDate)
           .lte("created_at", endDate)
@@ -210,11 +225,18 @@ export default function ReportsPage() {
   }, [supabase, selectedMonth, selectedYear, selectedDate]); // Run on filter change
 
   const handleDownload = () => {
-    generateMonthlyReport(orders, logs, expenses, stats, {
-      month: selectedMonth,
-      year: selectedYear,
-      date: selectedDate,
-    });
+    generateMonthlyReport(
+      orders,
+      logs,
+      expenses,
+      stats,
+      {
+        month: selectedMonth,
+        year: selectedYear,
+        date: selectedDate,
+      },
+      salaryPerDay,
+    );
   };
 
   // --- ALGORITHMS & STATS ---
@@ -274,7 +296,7 @@ export default function ReportsPage() {
       revenueToday = liveOrders.reduce((sum, order) => {
         if (
           (order.status === "paid" || order.status === "completed") &&
-          isSameDay(new Date(order.created_at), today)
+          isSameDay(parseISO(order.created_at), today)
         ) {
           return sum + order.total_price;
         }
@@ -282,7 +304,7 @@ export default function ReportsPage() {
       }, 0);
 
       ordersToday = liveOrders.filter((o) =>
-        isSameDay(new Date(o.created_at), today)
+        isSameDay(parseISO(o.created_at), today),
       ).length;
 
       revenueThisWeek = liveOrders.reduce((sum, order) => {
@@ -330,13 +352,15 @@ export default function ReportsPage() {
     const daysInMonth = new Date(
       parseInt(selectedYear),
       parseInt(selectedMonth) + 1,
-      0
+      0,
     ).getDate();
     const dailyData = Array.from({ length: daysInMonth }, (_, i) => {
       const d = i + 1;
       const revenue = orders
         .filter(
-          (o) => o.status === "paid" && new Date(o.created_at).getDate() === d
+          (o) =>
+            (o.status === "paid" || o.status === "completed") &&
+            getDate(parseISO(o.created_at)) === d,
         )
         .reduce((sum, o) => sum + o.total_price, 0);
       return { name: `${d}`, total: revenue };
@@ -352,19 +376,22 @@ export default function ReportsPage() {
     ];
 
     orders.forEach((order) => {
-      if (order.status === "paid") {
-        const day = new Date(order.created_at).getDate();
-        const weekIndex = weeklyData.findIndex(
-          (w) => day >= w.range[0] && day <= w.range[1]
-        );
-        if (weekIndex !== -1) {
-          weeklyData[weekIndex].total += order.total_price;
+      if (order.status === "paid" || order.status === "completed") {
+        const day = getDate(parseISO(order.created_at));
+
+        if (!isNaN(day)) {
+          const weekIndex = weeklyData.findIndex(
+            (w) => day >= w.range[0] && day <= w.range[1],
+          );
+          if (weekIndex !== -1) {
+            weeklyData[weekIndex].total += order.total_price;
+          }
         }
       }
     });
 
     const lowStockItems = inventory.filter(
-      (item) => item.stock <= (item.min_stock || 5)
+      (item) => item.stock <= (item.min_stock || 5),
     );
 
     return {
@@ -378,7 +405,7 @@ export default function ReportsPage() {
       totalPcs,
       dailyData,
       weeklyData: weeklyData.filter(
-        (w) => w.total > 0 || parseInt(selectedMonth) === new Date().getMonth()
+        (w) => w.total > 0 || parseInt(selectedMonth) === new Date().getMonth(),
       ),
       lowStockItems,
     };
@@ -415,7 +442,7 @@ export default function ReportsPage() {
                 ? `Laporan untuk ${format(
                     new Date(selectedDate),
                     "dd MMMM yyyy",
-                    { locale: id }
+                    { locale: id },
                   )}`
                 : "Analisis performa bisnis dan inventaris Anda."}
             </p>
@@ -433,52 +460,81 @@ export default function ReportsPage() {
           </div>
 
           {/* Filters - Stack on mobile */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full md:w-auto">
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-full sm:w-[140px] bg-slate-900 border-white/10 text-white min-h-[44px]">
-                <SelectValue placeholder="Bulan" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-white/10 text-white">
-                {Array.from({ length: 12 }, (_, i) => (
-                  <SelectItem key={i} value={i.toString()}>
-                    {format(new Date(2024, i, 1), "MMMM", { locale: id })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-full sm:w-[120px] bg-slate-900 border-white/10 text-white min-h-[44px]">
-                <SelectValue placeholder="Tahun" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-white/10 text-white">
-                {Array.from({ length: 5 }, (_, i) => {
-                  const year = new Date().getFullYear() - 2 + i;
-                  return (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-
-            {/* Date Filter */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="flex-1 sm:flex-none px-3 py-2 bg-slate-900 border border-white/10 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 min-h-[44px]"
-              />
-              {selectedDate && (
-                <button
-                  onClick={() => setSelectedDate("")}
-                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm rounded-md transition-colors min-h-[44px]"
-                >
-                  Reset
-                </button>
-              )}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full md:w-auto items-end">
+            {/* Mode Toggle */}
+            <div className="bg-slate-900 p-1 rounded-lg border border-white/10 flex">
+              <button
+                onClick={() => {
+                  setReportType("monthly");
+                  setSelectedDate(""); // Clear date to trigger monthly logic
+                }}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  reportType === "monthly"
+                    ? "bg-cyan-500 text-white shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Bulanan
+              </button>
+              <button
+                onClick={() => {
+                  setReportType("daily");
+                  // Default to today if switching to daily
+                  if (!selectedDate) {
+                    const today = new Date().toISOString().split("T")[0];
+                    setSelectedDate(today);
+                  }
+                }}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  reportType === "daily"
+                    ? "bg-cyan-500 text-white shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Harian
+              </button>
             </div>
+
+            {reportType === "monthly" ? (
+              <>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-slate-900 border-white/10 text-white min-h-[44px]">
+                    <SelectValue placeholder="Bulan" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-white/10 text-white">
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i} value={i.toString()}>
+                        {format(new Date(2024, i, 1), "MMMM", { locale: id })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-full sm:w-[120px] bg-slate-900 border-white/10 text-white min-h-[44px]">
+                    <SelectValue placeholder="Tahun" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-white/10 text-white">
+                    {Array.from({ length: 5 }, (_, i) => {
+                      const year = new Date().getFullYear() - 2 + i;
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="flex-1 sm:flex-none px-3 py-2 bg-slate-900 border border-white/10 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 min-h-[44px]"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -510,7 +566,7 @@ export default function ReportsPage() {
         <SummaryCard
           title="Pendapatan (Lunas)"
           value={formatCurrency(stats.totalRevenue)}
-          subtext={`est. +${formatCurrency(stats.potentialRevenue)} (Piutang)`}
+          subtext={`Est. Gaji: ${formatCurrency(salaryPerDay)}/hari`}
           icon={WalletMinimal}
           color="violet"
         />
@@ -638,7 +694,7 @@ export default function ReportsPage() {
                               {format(
                                 new Date(log.created_at),
                                 "dd MMM HH:mm",
-                                { locale: id }
+                                { locale: id },
                               )}
                             </td>
                             <td className="px-4 py-3 font-medium text-slate-200">

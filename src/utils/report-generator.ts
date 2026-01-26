@@ -7,7 +7,8 @@ export const generateMonthlyReport = async (
   logs: any[],
   expenses: any[],
   stats: any,
-  period: { month: string; year: string; date?: string }
+  period: { month: string; year: string; date?: string },
+  salaryPerDay: number, // Added dynamic salary argument
 ) => {
   const workbook = new ExcelJS.Workbook();
 
@@ -102,7 +103,7 @@ export const generateMonthlyReport = async (
     : `LAPORAN BULANAN: ${format(
         new Date(parseInt(period.year), parseInt(period.month), 1),
         "MMMM yyyy",
-        { locale: id }
+        { locale: id },
       ).toUpperCase()}`;
   reportTitle.font = styles.subHeaderFont;
 
@@ -115,7 +116,20 @@ export const generateMonthlyReport = async (
 
   // Calculate Totals
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const netProfit = stats.totalRevenue - totalExpenses;
+
+  // Calculate Salary
+  let daysInPeriod = 1;
+  if (!period.date) {
+    // If monthly report, calculate days in month
+    daysInPeriod = new Date(
+      parseInt(period.year),
+      parseInt(period.month) + 1,
+      0,
+    ).getDate();
+  }
+  const totalSalary = daysInPeriod * salaryPerDay;
+
+  const netProfit = stats.totalRevenue - totalExpenses - totalSalary;
 
   // Custom Table Construction for full control
   const finTableStart = 5;
@@ -132,6 +146,7 @@ export const generateMonthlyReport = async (
   const finData = [
     ["Pendapatan (Lunas)", stats.totalRevenue],
     ["Pengeluaran Operasional", totalExpenses],
+    ["Estimasi Gaji Karyawan", totalSalary],
     ["Profit Bersih", netProfit],
     ["Potensi Pendapatan (Piutang)", stats.potentialRevenue],
   ];
@@ -245,12 +260,12 @@ export const generateMonthlyReport = async (
     ? `RINCIAN KEUANGAN HARIAN - ${format(
         new Date(period.date),
         "dd MMMM yyyy",
-        { locale: id }
+        { locale: id },
       ).toUpperCase()}`
     : `RINCIAN KEUANGAN - ${format(
         new Date(parseInt(period.year), parseInt(period.month), 1),
         "MMMM yyyy",
-        { locale: id }
+        { locale: id },
       ).toUpperCase()}`;
   finSheet.getCell("A1").font = styles.headerFont;
   finSheet.getCell("A1").fill = styles.headerFill;
@@ -328,10 +343,41 @@ export const generateMonthlyReport = async (
     finRow++;
   });
 
+  // III. ESTIMASI GAJI
+  finRow++;
+  finSheet.mergeCells(`A${finRow}:E${finRow}`);
+  finSheet.getCell(`A${finRow}`).value = "III. ESTIMASI GAJI KARYAWAN";
+  finSheet.getCell(`A${finRow}`).font = {
+    bold: true,
+    color: { argb: "FFF59E0B" }, // Amber
+  };
+  finRow++;
+
+  const salaryRow = finSheet.getRow(finRow);
+  salaryRow.values = [
+    period.date
+      ? format(new Date(period.date), "dd/MM/yy", { locale: id })
+      : "-",
+    "SALARY",
+    `Gaji Harian (${daysInPeriod} hari x @${salaryPerDay.toLocaleString("id-ID")})`,
+    null,
+    totalSalary,
+  ];
+  applyDataRowStyle(salaryRow);
+  salaryRow.getCell(5).numFmt = styles.currencyFormat;
+  salaryRow.getCell(5).alignment = { horizontal: "right" };
+  finRow++;
+
   // TOTALS FOOTER
   finRow += 1;
   const totalRow = finSheet.getRow(finRow);
-  totalRow.values = ["", "", "TOTAL", stats.totalRevenue, totalExpenses];
+  totalRow.values = [
+    "",
+    "",
+    "TOTAL",
+    stats.totalRevenue,
+    totalExpenses + totalSalary,
+  ];
 
   totalRow.getCell(3).font = { bold: true, size: 12 };
   totalRow.getCell(3).alignment = { horizontal: "right" };

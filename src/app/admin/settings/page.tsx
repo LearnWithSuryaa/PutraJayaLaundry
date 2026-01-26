@@ -19,25 +19,29 @@ import {
   Store,
   Globe,
   TrendingUp,
+  WalletMinimal,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   const [storeName, setStoreName] = useState("Rynse Laundry");
   const [storeAddress, setStoreAddress] = useState(
-    "Kawasan Ruko Putra Jaya Blok A1"
+    "Kawasan Ruko Putra Jaya Blok A1",
   );
   const [storePhone, setStorePhone] = useState("081234567890");
   const [receiptHeader, setReceiptHeader] = useState(
-    "Terima kasih atas kepercayaan Anda!"
+    "Terima kasih atas kepercayaan Anda!",
   );
   const [receiptFooter, setReceiptFooter] = useState(
-    "Barang yang tidak diambil > 30 hari diluar tanggung jawab kami."
+    "Barang yang tidak diambil > 30 hari diluar tanggung jawab kami.",
   );
 
   // Target Settings
   const [useDynamicTarget, setUseDynamicTarget] = useState(true);
   const [manualTarget, setManualTarget] = useState(2500000);
+
+  // Salary Settings (LocalStorage)
+  const [salaryPerDay, setSalaryPerDay] = useState(50000);
 
   const [isSaved, setIsSaved] = useState(false);
 
@@ -59,6 +63,13 @@ export default function SettingsPage() {
       setUseDynamicTarget(parsed.useDynamicTarget !== false); // default true
       setManualTarget(parsed.manualTarget || 2500000);
     }
+
+    // Load Salary
+    const savedSalary = localStorage.getItem("rynse_salary_settings");
+    if (savedSalary) {
+      const parsed = JSON.parse(savedSalary);
+      setSalaryPerDay(parsed.salaryPerDay || 50000);
+    }
   }, []);
 
   const handleSave = () => {
@@ -77,7 +88,13 @@ export default function SettingsPage() {
     };
     localStorage.setItem(
       "rynse_target_settings",
-      JSON.stringify(targetSettings)
+      JSON.stringify(targetSettings),
+    );
+
+    const salarySettings = { salaryPerDay };
+    localStorage.setItem(
+      "rynse_salary_settings",
+      JSON.stringify(salarySettings),
     );
 
     // Trigger a custom event so Dashboard can listen (optional but good for UX if multiple tabs)
@@ -234,6 +251,36 @@ export default function SettingsPage() {
                 </p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Salary Settings */}
+        <Card className="bg-slate-900/60 border-white/10 backdrop-blur-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <WalletMinimal className="w-5 h-5 text-amber-400" /> Pengaturan
+              Gaji
+            </CardTitle>
+            <CardDescription>
+              Tentukan gaji harian untuk perhitungan laporan.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2">
+              <Label htmlFor="salary" className="text-slate-300">
+                Gaji Harian (Rp)
+              </Label>
+              <Input
+                id="salary"
+                type="number"
+                value={salaryPerDay}
+                onChange={(e) => setSalaryPerDay(Number(e.target.value))}
+                className="bg-slate-950/50 border-white/10"
+              />
+              <p className="text-xs text-slate-500">
+                Digunakan untuk mengurangi profit bersih dalam laporan.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
