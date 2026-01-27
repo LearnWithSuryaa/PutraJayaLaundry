@@ -230,25 +230,48 @@ export function AdminSidebar() {
       </aside>
 
       {/* Bottom Navigation for Mobile (Alternative) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-xl border-t border-white/10">
-        <div className="grid grid-cols-7 items-center h-16 px-1 gap-1">
-          {menuItems.map((item) => {
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-white/10 pb-safe">
+        <div className="grid grid-cols-5 items-center h-16 px-2 gap-1">
+          {menuItems.slice(0, 4).map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center p-2 rounded-lg transition-all",
+                  "flex flex-col items-center justify-center p-2 rounded-lg transition-all active:scale-95",
                   isActive
                     ? "text-cyan-400 bg-cyan-500/10"
                     : "text-slate-400 hover:text-white hover:bg-white/5",
                 )}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon
+                  className={cn("w-5 h-5 mb-1", isActive && "fill-current/20")}
+                />
+                <span className="text-[10px] font-medium truncate max-w-full">
+                  {item.title}
+                </span>
               </Link>
             );
           })}
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={cn(
+              "flex flex-col items-center justify-center p-2 rounded-lg transition-all active:scale-95",
+              mobileMenuOpen
+                ? "text-cyan-400 bg-cyan-500/10"
+                : "text-slate-400 hover:text-white hover:bg-white/5",
+            )}
+          >
+            <Menu
+              className={cn(
+                "w-5 h-5 mb-1",
+                mobileMenuOpen && "fill-current/20",
+              )}
+            />
+            <span className="text-[10px] font-medium">Menu</span>
+          </button>
         </div>
       </nav>
     </>

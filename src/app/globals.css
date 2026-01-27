@@ -48,43 +48,43 @@
 
 :root {
   --radius: 0.75rem; /* Modern 12px radius */
-  
+
   /* DARK NEON THEME (Based on user palette) */
   /* #78B9B5, #0F828C, #065084, #320A6B */
-  
+
   --background: oklch(0.15 0.04 260); /* Deep Navy Blue (#061833 approx) */
   --foreground: oklch(0.95 0.02 200); /* Crisp White-Cyan */
-  
+
   --card: oklch(0.2 0.06 265); /* Dark Glass Card */
   --card-foreground: oklch(0.95 0.02 200);
-  
+
   --popover: oklch(0.15 0.04 260);
   --popover-foreground: oklch(0.95 0.02 200);
-  
+
   --primary: oklch(0.55 0.15 220); /* #0F828C (Teal) */
   --primary-foreground: oklch(1 0 0); /* White on Teal */
-  
+
   --secondary: oklch(0.3 0.1 290); /* #320A6B (Dark Violet) */
   --secondary-foreground: oklch(0.95 0.02 200);
-  
+
   --muted: oklch(0.25 0.05 260);
   --muted-foreground: oklch(0.7 0.05 220); /* Soft Teal-Grey */
-  
+
   --accent: oklch(0.68 0.15 190); /* #78B9B5 (Light Teal/Cyan) */
   --accent-foreground: oklch(0.15 0.04 260);
-  
+
   --destructive: oklch(0.5 0.2 27);
   --destructive-foreground: oklch(1 0 0);
-  
+
   --border: oklch(0.3 0.05 260);
   --input: oklch(0.3 0.05 260);
   --ring: oklch(0.55 0.15 220);
-  
+
   --chart-1: oklch(0.55 0.15 220); /* Teal */
   --chart-2: oklch(0.68 0.15 190); /* Light Teal */
-  --chart-3: oklch(0.3 0.1 290);   /* Violet */
-  --chart-4: oklch(0.4 0.1 250);   /* Blue */
-  --chart-5: oklch(0.8 0.1 200);   /* Cyan */
+  --chart-3: oklch(0.3 0.1 290); /* Violet */
+  --chart-4: oklch(0.4 0.1 250); /* Blue */
+  --chart-5: oklch(0.8 0.1 200); /* Cyan */
   --sidebar: oklch(0.99 0 0);
   --sidebar-foreground: oklch(0.13 0.02 260);
   --sidebar-primary: oklch(0.48 0.22 265);
@@ -148,5 +148,10 @@
   .glass-input {
     @apply bg-white/50 dark:bg-black/20 backdrop-blur-sm border-transparent focus:border-primary/50 focus:bg-white/80 transition-all rounded-xl;
   }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
