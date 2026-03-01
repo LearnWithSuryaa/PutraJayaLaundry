@@ -51,13 +51,13 @@ export default function OrdersPage() {
         .order("created_at", { ascending: false })
         .range(
           currentPage * ITEMS_PER_PAGE,
-          (currentPage + 1) * ITEMS_PER_PAGE - 1
+          (currentPage + 1) * ITEMS_PER_PAGE - 1,
         );
       if (data) setOrders(data);
       if (count !== null) setTotalCount(count);
       setIsLoading(false);
     },
-    [supabase]
+    [supabase],
   );
 
   useEffect(() => {
@@ -69,8 +69,8 @@ export default function OrdersPage() {
       // Optimistic update
       setOrders((prevOrders) =>
         prevOrders.map((o) =>
-          o.id === id ? { ...o, status: newStatus as any } : o
-        )
+          o.id === id ? { ...o, status: newStatus as any } : o,
+        ),
       );
 
       const { error } = await supabase
@@ -84,7 +84,7 @@ export default function OrdersPage() {
         fetchOrders(page); // Revert on failure
       }
     },
-    [supabase, fetchOrders]
+    [supabase, fetchOrders],
   );
 
   // WhatsApp Logic (Direct Link)
@@ -111,7 +111,7 @@ export default function OrdersPage() {
         alert("Gagal menghapus order");
       }
     },
-    [supabase]
+    [supabase],
   );
 
   const sendWhatsApp = useCallback((order: Order, type: "nota" | "status") => {
@@ -120,7 +120,9 @@ export default function OrdersPage() {
       ? "62" + order.customer_phone.slice(1)
       : order.customer_phone;
 
-    // Helper for currency
+    const receiptUrl = `${window.location.origin}/struk/${order.id}`;
+
+    // Format price helper
     const formatPrice = (price: number) =>
       new Intl.NumberFormat("id-ID", {
         style: "currency",
@@ -129,53 +131,30 @@ export default function OrdersPage() {
       }).format(price);
 
     if (type === "nota") {
-      // 1. NOTA FRIENDLY FORMAT
-      const date = new Date(order.created_at).toLocaleDateString("id-ID", {
-        day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
-      }).replace(/\./g, '/').replace(' pukul', ','); // 21/01/2026, 01.34
-
       const itemsList =
         order.order_items && order.order_items.length > 0
           ? order.order_items
-            .map((i) => {
-              return `- ${i.service_name || i.name}\n  ${i.quantity} ${i.unit} × ${formatPrice(Number(i.service_price))}`;
-            })
-            .join("\n")
+              .map((i) => `- ${i.quantity}x ${i.service_name || i.name}`)
+              .join("\n")
           : "- Item tidak tersedia";
 
-      // Calculate Subtotal and Rounding for Message
-      const subtotal = (order.order_items || []).reduce((acc, item) => {
-        return acc + (Number(item.service_price || 0) * Number(item.quantity));
-      }, 0);
-      const rounding = order.total_price - subtotal;
+      message = `*Pesan Dari PutraJaya Laundry*
+      
+Halo Kak ${order.customer_name}, Terima kasih sudah menggunakan layanan PutraJaya Laundry.
 
-      const roundingSign = rounding > 0 ? "+" : "";
-      const formattedRounding = `${roundingSign}${formatPrice(rounding).replace("Rp", "").trim()}`;
-
-      message = `Halo Kak ${order.customer_name},
-Terima kasih sudah menggunakan layanan PutraJaya Laundry.
-Berikut rincian pesanan Kakak:
-
-No. Nota : #${order.id}
-Waktu    : ${date.replace(', ', ', ').replace(/\//g, '/')}
-
-Rincian Laundry:
+Berikut Rincian Singkat Pesanan Kakak (Nota #${order.id}):
 ${itemsList}
 
-Subtotal   : ${formatPrice(subtotal)}
-Pembulatan : Rp ${formattedRounding}
---------------------------
-Total Bayar: ${formatPrice(order.total_price)}
+*Total: ${formatPrice(order.total_price)}*
+Status saat ini: *${order.status.toUpperCase()}*
 
-Status: ${order.status.toUpperCase()}
+Untuk rincian lengkap, silakan akses struk digital Kakak di sini:
+${receiptUrl}
 
-Catatan: ${order.notes || "-"}
-> "Total dibulatkan ke kelipatan Rp1.000"
-Terima kasih, ditunggu order berikutnya ya Kak!`;
+Terima kasih!`;
     } else {
-      // 2. STATUS UPDATE TEMPLATE
       const statusMap: Record<string, string> = {
-        pending: "Menunggu Konfirmasi ",
+        pending: "Menunggu Konfirmasi",
         processing: "Sedang Diproses",
         completed: "Selesai & Siap Diambil",
         paid: "Lunas & Selesai",
@@ -193,13 +172,23 @@ Terima kasih, ditunggu order berikutnya ya Kak!`;
         statusMap[order.status] || order.status.toUpperCase();
       const specificMessage = statusMessageMap[order.status] || "";
 
-      message = `* Halo Kak ${order.customer_name} !*\n\n * Update Status Pesanan #${order.id}*\nStatus saat ini: * ${translatedStatus}*\n\n${specificMessage} \n\nTerima kasih!`;
+      message = `*Halo Kak ${order.customer_name}!*
+
+*Update Status Pesanan #${order.id}*
+Status saat ini: *${translatedStatus}*
+
+${specificMessage}
+
+Cek struk digital dan detail pesanan di sini:
+${receiptUrl}
+
+Terima kasih!`;
     }
 
     // Use encodeURIComponent to strictly handle #, emojis, and newlines
     window.open(
       `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-      "_blank"
+      "_blank",
     );
   }, []);
 
@@ -331,7 +320,7 @@ Terima kasih, ditunggu order berikutnya ya Kak!`;
                     >
                       <SelectTrigger
                         className={`w-[130px] h-8 text-xs font-semibold capitalize border transition-all ${getStatusColor(
-                          order.status
+                          order.status,
                         )} focus:ring-0 focus:ring-offset-0`}
                       >
                         <SelectValue placeholder="Status" />
@@ -387,21 +376,22 @@ Terima kasih, ditunggu order berikutnya ya Kak!`;
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={`h-8 w-8 rounded-lg transition-all ${order.status === "paid"
-                          ? "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
-                          : "bg-slate-800/50 text-slate-600 cursor-not-allowed opacity-50"
-                          }`}
+                        className={`h-8 w-8 rounded-lg transition-all ${
+                          order.status === "paid"
+                            ? "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
+                            : "bg-slate-800/50 text-slate-600 cursor-not-allowed opacity-50"
+                        }`}
                         onClick={() => {
                           if (order.status !== "paid") {
                             alert(
-                              "Struk hanya dapat dicetak jika status pembayaran sudah 'Paid' (Lunas)."
+                              "Struk hanya dapat dicetak jika status pembayaran sudah 'Paid' (Lunas).",
                             );
                             return;
                           }
                           window.open(
                             `/admin/orders/${order.id}/print`,
                             "PrintReceipt",
-                            "width=400,height=600"
+                            "width=400,height=600",
                           );
                         }}
                         title={
