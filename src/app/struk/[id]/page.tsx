@@ -7,6 +7,7 @@ import { Order } from "@/types";
 import { calculateRoundedPrice } from "@/utils/pricing";
 import { formatCurrency } from "@/utils/format";
 import { Loader2, CheckCircle2, Clock, Package, Download } from "lucide-react";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -185,7 +186,7 @@ export default function DigitalReceiptPage() {
       pdf.save(`Struk_Laundry_${order.customer_name}_${order.id}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Gagal mengunduh PDF. Silakan coba lagi.");
+      toast.error("Gagal mengunduh PDF. Silakan coba lagi nanti.");
     } finally {
       setIsDownloading(false);
     }
