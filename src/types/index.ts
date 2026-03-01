@@ -32,6 +32,7 @@ export type Order = {
   notes?: string;
   status: "pending" | "processing" | "completed" | "paid";
   created_at: string;
+  receipt_token?: string; // Added for public receipt links
 };
 
 export interface InventoryItem {

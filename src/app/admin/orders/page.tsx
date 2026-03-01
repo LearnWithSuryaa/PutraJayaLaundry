@@ -120,7 +120,7 @@ export default function OrdersPage() {
       ? "62" + order.customer_phone.slice(1)
       : order.customer_phone;
 
-    const receiptUrl = `${window.location.origin}/struk/${order.id}`;
+    const receiptUrl = `${window.location.origin}/struk/${order.receipt_token || order.id}`;
 
     // Format price helper
     const formatPrice = (price: number) =>

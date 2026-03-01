@@ -45,13 +45,24 @@ export default function DigitalReceiptPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       if (!id) return;
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*, order_items(*)")
-        .eq("id", id)
-        .single();
+      // Deteksi apakah "id" di URL adalah UUID (berarti receipt_token) atau integer ID
+      const isUUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          id,
+        );
 
-      if (data) setOrder(data);
+      let res;
+      if (isUUID) {
+        res = await supabase.rpc("get_receipt_by_token", { p_token: id });
+      } else {
+        res = await supabase
+          .from("orders")
+          .select("*, order_items(*)")
+          .eq("id", id)
+          .single();
+      }
+
+      if (res.data) setOrder(res.data);
       setLoading(false);
     };
 
