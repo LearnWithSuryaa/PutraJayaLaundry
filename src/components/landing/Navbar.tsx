@@ -23,6 +23,7 @@ export function Navbar() {
   // Check if we should hide the navbar
   if (
     pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/struk") ||
     pathname === "/privacy-policy" ||
     pathname === "/terms-of-service"
   ) {
@@ -96,9 +97,9 @@ export function Navbar() {
               onClick={() =>
                 window.open(
                   `https://wa.me/6281232052919?text=${encodeURIComponent(
-                    "Halo Admin, saya butuh informasi mengenai laundry..."
+                    "Halo Admin, saya butuh informasi mengenai laundry...",
                   )}`,
-                  "_blank"
+                  "_blank",
                 )
               }
             >
@@ -145,9 +146,9 @@ export function Navbar() {
                 onClick={() =>
                   window.open(
                     `https://wa.me/6281232052919?text=${encodeURIComponent(
-                      "Halo, saya mau order laundry lewat WhatsApp."
+                      "Halo, saya mau order laundry lewat WhatsApp.",
                     )}`,
-                    "_blank"
+                    "_blank",
                   )
                 }
               >
