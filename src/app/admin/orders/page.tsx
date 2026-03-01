@@ -134,7 +134,9 @@ export default function OrdersPage() {
       const itemsList =
         order.order_items && order.order_items.length > 0
           ? order.order_items
-              .map((i) => `- ${i.quantity}x ${i.service_name || i.name}`)
+              .map(
+                (i) => `- ${i.quantity} ${i.unit} ${i.service_name || i.name}`,
+              )
               .join("\n")
           : "- Item tidak tersedia";
 
