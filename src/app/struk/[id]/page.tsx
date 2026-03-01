@@ -21,6 +21,7 @@ export default function DigitalReceiptPage() {
   const id = params?.id as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Settings State
   const [settings, setSettings] = useState({
@@ -147,8 +148,6 @@ export default function DigitalReceiptPage() {
         };
     }
   };
-
-  const [isDownloading, setIsDownloading] = useState(false);
 
   const downloadPDF = async () => {
     try {
