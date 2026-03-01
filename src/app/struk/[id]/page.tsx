@@ -155,7 +155,7 @@ export default function DigitalReceiptPage() {
       setIsDownloading(true);
 
       // Dynamic import to avoid SSR issues
-      const html2canvas = (await import("html2canvas")).default;
+      const { toPng } = await import("html-to-image");
       const { jsPDF } = await import("jspdf");
 
       const element = document.getElementById("receipt-content");
@@ -164,15 +164,24 @@ export default function DigitalReceiptPage() {
       // Temporary class to hide shadow and adjust design for PDF if needed
       element.classList.add("print-mode");
 
-      const canvas = await html2canvas(element, {
-        scale: 2, // better resolution
-        useCORS: true,
+      // We hide elements with data-html2canvas-ignore via CSS during this process
+      const filter = (node: HTMLElement) => {
+        const exclusionClasses = ["lucide-download", "animate-spin"];
+        const isExcluded = exclusionClasses.some((classname) =>
+          node.classList?.contains(classname),
+        );
+        return !isExcluded && !node.hasAttribute?.("data-html2canvas-ignore");
+      };
+
+      const imgData = await toPng(element, {
+        quality: 1.0,
+        pixelRatio: 2,
         backgroundColor: "#020617", // match bg-slate-950
+        filter: filter as any,
       });
 
       element.classList.remove("print-mode");
 
-      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -180,7 +189,7 @@ export default function DigitalReceiptPage() {
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Struk_Laundry_${order.customer_name}_${order.id}.pdf`);
