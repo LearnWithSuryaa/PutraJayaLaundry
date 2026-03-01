@@ -139,11 +139,58 @@ export default function DigitalReceiptPage() {
     }
   };
 
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const downloadPDF = async () => {
+    try {
+      setIsDownloading(true);
+
+      // Dynamic import to avoid SSR issues
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const element = document.getElementById("receipt-content");
+      if (!element) return;
+
+      // Temporary class to hide shadow and adjust design for PDF if needed
+      element.classList.add("print-mode");
+
+      const canvas = await html2canvas(element, {
+        scale: 2, // better resolution
+        useCORS: true,
+        backgroundColor: "#020617", // match bg-slate-950
+      });
+
+      element.classList.remove("print-mode");
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Struk_Laundry_${order.customer_name}_${order.id}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Gagal mengunduh PDF. Silakan coba lagi.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const statusDisplay = getStatusDisplay(order.status);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 p-4 sm:p-8 flex justify-center items-start pt-10 pb-20">
-      <Card className="w-full max-w-md bg-slate-900/80 border-slate-800/50 shadow-2xl backdrop-blur-xl overflow-hidden">
+      <Card
+        id="receipt-content"
+        className="w-full max-w-md bg-slate-900/80 border-slate-800/50 shadow-2xl backdrop-blur-xl overflow-hidden"
+      >
         <div className="h-2 w-full bg-gradient-to-r from-cyan-500 to-blue-600"></div>
 
         <CardHeader className="text-center pb-2 pt-6">
@@ -163,7 +210,10 @@ export default function DigitalReceiptPage() {
 
         <CardContent className="pt-6 pb-6 space-y-6">
           {/* Order Status */}
-          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/50 border border-slate-800/50">
+          <div
+            data-html2canvas-ignore
+            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/50 border border-slate-800/50"
+          >
             <span className="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-2">
               Status Pesanan
             </span>
@@ -278,12 +328,18 @@ export default function DigitalReceiptPage() {
         <CardFooter className="bg-slate-950/50 border-t border-slate-800/50 p-6 flex flex-col gap-4">
           <Button
             className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-12 rounded-xl"
-            onClick={() => window.print()}
+            onClick={downloadPDF}
+            disabled={isDownloading}
+            data-html2canvas-ignore
           >
-            <Download className="w-4 h-4 mr-2" />
-            Simpan Struk
+            {isDownloading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
+            {isDownloading ? "Memproses PDF..." : "Simpan Struk (PDF)"}
           </Button>
-          <div className="text-center w-full space-y-1">
+          <div className="text-center w-full space-y-1" data-html2canvas-ignore>
             <p className="text-xs text-slate-500">
               Hubungi kami melalui WhatsApp
             </p>
