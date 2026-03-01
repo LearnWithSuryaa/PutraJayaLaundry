@@ -27,7 +27,7 @@ export default function DigitalReceiptPage() {
   // Settings State
   const [settings, setSettings] = useState({
     storeName: "PUTRAJAYA LAUNDRY",
-    storePhone: "0812-3205-2919",
+    storePhone: "+62 081232052919",
     storeAddress: "Jl. Kelapa No. 141 RT/RW 07/02\nKabunan, Balen, Bojonegoro",
     receiptFooter:
       "1. Barang tidak diambil 30 hari menjadi hak laundry\n2. Komplain maksimal 2x24 jam setelah pengambilan",
@@ -159,43 +159,49 @@ export default function DigitalReceiptPage() {
       const { jsPDF } = await import("jspdf");
 
       const element = document.getElementById("receipt-content");
+      const footerElement = document.getElementById("receipt-footer");
+
       if (!element) return;
 
-      // Temporary class to hide shadow and adjust design for PDF if needed
-      element.classList.add("print-mode");
+      // Sembunyikan footer sementara agar tidak ada area putih lebar di PDF
+      if (footerElement) {
+        footerElement.style.display = "none";
+      }
 
-      // We hide elements with data-html2canvas-ignore via CSS during this process
-      const filter = (node: HTMLElement) => {
-        const exclusionClasses = ["lucide-download", "animate-spin"];
-        const isExcluded = exclusionClasses.some((classname) =>
-          node.classList?.contains(classname),
-        );
-        return !isExcluded && !node.hasAttribute?.("data-html2canvas-ignore");
-      };
+      // Beri waktu sejenak agar browser merender ulang ukuran elemen
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       const imgData = await toPng(element, {
         quality: 1.0,
         pixelRatio: 2,
-        backgroundColor: "#020617", // match bg-slate-950
-        filter: filter as any,
+        backgroundColor: "#0f172a", // match bg-slate-900
       });
 
-      element.classList.remove("print-mode");
+      // Kembalikan footer kembali
+      if (footerElement) {
+        footerElement.style.display = "flex";
+      }
+
+      // Hitung tinggi proporsional berdasarkan tinggi elemen yang sudah terpotong
+      const pdfWidth = 100; // 100mm lebar ideal untuk dibaca
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
 
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: "a4",
+        format: [pdfWidth, pdfHeight], // Gunakan dimensi custom agar tinggi menyesuaikan otomatis
       });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Struk_Laundry_${order.customer_name}_${order.id}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Gagal mengunduh PDF. Silakan coba lagi nanti.");
+
+      const footerElement = document.getElementById("receipt-footer");
+      if (footerElement) {
+        footerElement.style.display = "flex";
+      }
     } finally {
       setIsDownloading(false);
     }
@@ -357,7 +363,10 @@ export default function DigitalReceiptPage() {
           </div>
         </CardContent>
 
-        <CardFooter className="bg-slate-950/50 border-t border-slate-800/80 p-6 flex flex-col gap-4">
+        <CardFooter
+          id="receipt-footer"
+          className="bg-slate-950/50 border-t border-slate-800/80 p-6 flex flex-col gap-4"
+        >
           <Button
             className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-12 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
             onClick={downloadPDF}
