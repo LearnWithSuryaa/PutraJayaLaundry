@@ -26,6 +26,9 @@ export default function DigitalReceiptPage() {
   const [settings, setSettings] = useState({
     storeName: "PUTRAJAYA LAUNDRY",
     storePhone: "0812-3205-2919",
+    storeAddress: "Jl. Kelapa No. 141 RT/RW 07/02\nKabunan, Balen, Bojonegoro",
+    receiptFooter:
+      "1. Barang tidak diambil 30 hari menjadi hak laundry\n2. Komplain maksimal 2x24 jam setelah pengambilan",
   });
 
   const supabase = createClient();
@@ -38,6 +41,12 @@ export default function DigitalReceiptPage() {
         ...prev,
         storeName: parsed.storeName || "PUTRAJAYA LAUNDRY",
         storePhone: parsed.storePhone || "0812-3205-2919",
+        storeAddress:
+          parsed.storeAddress ||
+          "Jl. Kelapa No. 141 RT/RW 07/02\nKabunan, Balen, Bojonegoro",
+        receiptFooter:
+          parsed.receiptFooter ||
+          "1. Barang tidak diambil 30 hari menjadi hak laundry\n2. Komplain maksimal 2x24 jam setelah pengambilan",
       }));
     }
   }, []);
@@ -193,18 +202,23 @@ export default function DigitalReceiptPage() {
       >
         <div className="h-2 w-full bg-gradient-to-r from-cyan-500 to-blue-600"></div>
 
-        <CardHeader className="text-center pb-2 pt-6">
-          <CardTitle className="text-2xl font-black tracking-tight text-white mb-1 uppercase">
+        <CardHeader className="text-center pb-2 pt-6 border-b border-slate-800/50">
+          <CardTitle className="text-xl sm:text-2xl font-black tracking-tight text-white mb-2 uppercase">
             {settings.storeName}
           </CardTitle>
-          <p className="text-sm text-slate-400 italic">
-            E-Receipt / Struk Digital
-          </p>
+          <div className="text-xs sm:text-sm text-slate-400 whitespace-pre-line leading-relaxed px-4">
+            {settings.storeAddress}
+          </div>
 
-          <div className="mt-4 inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-slate-700/50 bg-slate-800/50">
-            <span className="text-cyan-400 font-mono font-bold tracking-wider">
-              #{order.id}
+          <div className="mt-5 inline-flex flex-col items-center justify-center space-y-1">
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+              E-Receipt / Struk Digital
             </span>
+            <div className="px-4 py-1.5 rounded-full border border-slate-700/50 bg-slate-800/50">
+              <span className="text-cyan-400 font-mono font-bold tracking-wider">
+                #{order.id}
+              </span>
+            </div>
           </div>
         </CardHeader>
 
@@ -323,29 +337,47 @@ export default function DigitalReceiptPage() {
               </span>
             </div>
           )}
+          {/* Terms and Conditions */}
+          <div className="pt-4 mt-2 border-t border-slate-800/50">
+            <p className="text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider text-center">
+              Syarat & Ketentuan
+            </p>
+            <div className="text-[10px] text-slate-500 whitespace-pre-line leading-relaxed text-center px-2">
+              {settings.receiptFooter}
+            </div>
+          </div>
         </CardContent>
 
-        <CardFooter className="bg-slate-950/50 border-t border-slate-800/50 p-6 flex flex-col gap-4">
+        <CardFooter className="bg-slate-950/50 border-t border-slate-800/80 p-6 flex flex-col gap-4">
           <Button
-            className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-12 rounded-xl"
+            className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-12 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
             onClick={downloadPDF}
             disabled={isDownloading}
             data-html2canvas-ignore
           >
             {isDownloading ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
             ) : (
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="w-5 h-5 mr-2" />
             )}
             {isDownloading ? "Memproses PDF..." : "Simpan Struk (PDF)"}
           </Button>
-          <div className="text-center w-full space-y-1" data-html2canvas-ignore>
-            <p className="text-xs text-slate-500">
-              Hubungi kami melalui WhatsApp
+
+          <div
+            className="flex flex-col items-center justify-center space-y-2 mt-2"
+            data-html2canvas-ignore
+          >
+            <p className="text-[11px] text-slate-500 font-medium">
+              Butuh Bantuan?
             </p>
-            <p className="text-sm font-mono text-cyan-500 font-semibold">
-              {settings.storePhone}
-            </p>
+            <a
+              href={`https://wa.me/${settings.storePhone.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-4 py-2 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors rounded-full text-xs font-bold font-mono tracking-wide"
+            >
+              Hubungi via WhatsApp
+            </a>
           </div>
         </CardFooter>
       </Card>
