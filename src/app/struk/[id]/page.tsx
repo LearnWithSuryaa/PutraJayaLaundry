@@ -336,6 +336,18 @@ export default function DigitalReceiptPage() {
         .btn-dark-bp:hover  { background: #3d3528 !important; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.3); }
         .btn-outline-bp { transition: all 0.15s ease; }
         .btn-outline-bp:hover { border-color:#1a1510 !important; transform:translateY(-1px); }
+
+        /* ── Responsive ── */
+        .route-code   { font-size: clamp(36px, 11vw, 54px); }
+        .pass-padding { padding-left: clamp(14px, 4.5vw, 22px); padding-right: clamp(14px, 4.5vw, 22px); }
+        .grand-total  { font-size: clamp(22px, 7vw, 30px); }
+
+        @media (max-width: 380px) {
+          .stub-barcode { display: none !important; }
+          .stub-inner-wrap { gap: 10px !important; }
+          .pass-stripe-name { font-size: 17px !important; }
+          .info-grid-wrap { gap: 8px !important; padding-top: 10px !important; padding-bottom: 10px !important; }
+        }
       `}</style>
 
       <div
@@ -345,10 +357,9 @@ export default function DigitalReceiptPage() {
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "center",
-          padding: "40px 20px 80px",
+          padding: "clamp(24px, 6vw, 40px) clamp(12px, 4vw, 20px) 80px",
           fontFamily: "'IBM Plex Mono', monospace",
           position: "relative",
-          // wood-grain overlay via pseudo isn't possible inline; leave clean
         }}
       >
         {/* Subtle wood-grain overlay */}
@@ -426,7 +437,7 @@ export default function DigitalReceiptPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "0 22px",
+                padding: "0 clamp(14px, 4.5vw, 22px)",
                 position: "relative",
                 overflow: "hidden",
               }}
@@ -440,6 +451,7 @@ export default function DigitalReceiptPage() {
                 }}
               />
               <div
+                className="pass-stripe-name"
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
                   fontSize: 22,
@@ -458,16 +470,20 @@ export default function DigitalReceiptPage() {
                   letterSpacing: "0.15em",
                   textTransform: "uppercase",
                   zIndex: 1,
+                  flexShrink: 0,
+                  marginLeft: 8,
                 }}
               >
                 Struk Digital
               </div>
             </div>
 
-            {/* ── Route Section (ORD → PLJ) ── */}
+            {/* ── Route Section (ORD → PJL) ── */}
             <div
+              className="pass-padding"
               style={{
-                padding: "18px 22px 14px",
+                paddingTop: 16,
+                paddingBottom: 14,
                 display: "flex",
                 alignItems: "center",
                 gap: 0,
@@ -478,9 +494,9 @@ export default function DigitalReceiptPage() {
               {/* Left: FROM */}
               <div style={{ flex: 1 }}>
                 <div
+                  className="route-code"
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: 54,
                     color: "var(--ink)",
                     lineHeight: 1,
                     letterSpacing: "0.04em",
@@ -510,6 +526,7 @@ export default function DigitalReceiptPage() {
                   alignItems: "center",
                   gap: 4,
                   padding: "0 8px",
+                  minWidth: 0,
                 }}
               >
                 <div
@@ -518,6 +535,7 @@ export default function DigitalReceiptPage() {
                     color: "var(--ink-light)",
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   PJ · {d.getFullYear()}
@@ -530,7 +548,7 @@ export default function DigitalReceiptPage() {
                       "repeating-linear-gradient(90deg,var(--ink-faint) 0,var(--ink-faint) 4px,transparent 4px,transparent 8px)",
                   }}
                 />
-                <div style={{ fontSize: 20, position: "relative", zIndex: 2 }}>
+                <div style={{ fontSize: 18, position: "relative", zIndex: 2 }}>
                   ✈
                 </div>
               </div>
@@ -538,9 +556,9 @@ export default function DigitalReceiptPage() {
               {/* Right: TO */}
               <div style={{ flex: 1, textAlign: "right" }}>
                 <div
+                  className="route-code"
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: 54,
                     color: "var(--ink)",
                     lineHeight: 1,
                     letterSpacing: "0.04em",
@@ -552,23 +570,28 @@ export default function DigitalReceiptPage() {
                   style={{
                     fontSize: 9,
                     color: "var(--ink-light)",
-                    letterSpacing: "0.12em",
+                    letterSpacing: "0.1em",
                     textTransform: "uppercase",
                     marginTop: 2,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
-                  Kab. Bojonegoro
+                  Bojonegoro
                 </div>
               </div>
             </div>
 
             {/* ── Info Grid ── */}
             <div
+              className="pass-padding info-grid-wrap"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(4,1fr)",
-                padding: "14px 22px",
-                gap: 12,
+                paddingTop: 14,
+                paddingBottom: 14,
+                gap: 10,
                 borderBottom: "1px dashed var(--ink-faint)",
               }}
             >
@@ -618,12 +641,15 @@ export default function DigitalReceiptPage() {
 
             {/* ── Passenger / Customer ── */}
             <div
+              className="pass-padding"
               style={{
-                padding: "12px 22px",
+                paddingTop: 12,
+                paddingBottom: 12,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 borderBottom: "1px dashed var(--ink-faint)",
+                gap: 8,
               }}
             >
               <div>
@@ -642,10 +668,11 @@ export default function DigitalReceiptPage() {
                 <div
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: 28,
+                    fontSize: "clamp(20px, 6vw, 28px)",
                     color: "var(--ink)",
                     letterSpacing: "0.06em",
                     lineHeight: 1,
+                    wordBreak: "break-word",
                   }}
                 >
                   {order.customer_name.toUpperCase()}
@@ -677,7 +704,10 @@ export default function DigitalReceiptPage() {
             </div>
 
             {/* ── Items ── */}
-            <div style={{ padding: "14px 22px" }}>
+            <div
+              className="pass-padding"
+              style={{ paddingTop: 14, paddingBottom: 14 }}
+            >
               <div
                 style={{
                   display: "flex",
@@ -979,16 +1009,20 @@ export default function DigitalReceiptPage() {
 
             {/* Stub inner */}
             <div
+              className="stub-inner-wrap pass-padding"
               style={{
-                padding: "16px 22px 20px",
+                paddingTop: 16,
+                paddingBottom: 20,
                 display: "flex",
                 alignItems: "center",
-                gap: 18,
+                gap: 16,
                 position: "relative",
                 zIndex: 2,
               }}
             >
-              <Barcode value={barcodeNum} />
+              <div className="stub-barcode">
+                <Barcode value={barcodeNum} />
+              </div>
 
               <div style={{ flex: 1 }}>
                 {/* Subtotal + rounding */}
@@ -1102,15 +1136,14 @@ export default function DigitalReceiptPage() {
                     </div>
                   </div>
                   <div
+                    className="grand-total"
                     style={{
                       fontFamily: "'Bebas Neue', sans-serif",
-                      fontSize: 30,
                       color: "var(--ink)",
                       letterSpacing: "0.04em",
                       lineHeight: 1,
                     }}
                   >
-                    {/* strip "Rp" prefix for big display, show raw number */}
                     {formatCurrency(order.total_price)}
                   </div>
                 </div>
@@ -1120,10 +1153,12 @@ export default function DigitalReceiptPage() {
             {/* Action row */}
             <div
               id="receipt-footer"
+              className="pass-padding"
               style={{
                 display: "flex",
                 gap: 8,
-                padding: "0 22px 18px",
+                paddingTop: 0,
+                paddingBottom: 18,
                 position: "relative",
                 zIndex: 2,
               }}
