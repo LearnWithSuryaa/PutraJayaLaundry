@@ -546,7 +546,7 @@ export default function DigitalReceiptPage() {
                     letterSpacing: "0.04em",
                   }}
                 >
-                  PLJ
+                  PJL
                 </div>
                 <div
                   style={{
