@@ -6,15 +6,19 @@ import { createClient } from "@/utils/supabase/client";
 import { Order } from "@/types";
 import { calculateRoundedPrice } from "@/utils/pricing";
 import { formatCurrency } from "@/utils/format";
-import { Loader2, CheckCircle2, Clock, Package, Download } from "lucide-react";
-import { toast } from "sonner";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+  Loader2,
+  CheckCircle2,
+  Clock,
+  Package,
+  Download,
+  WashingMachine,
+  MapPin,
+  Phone,
+  CalendarDays,
+  Hash,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export default function DigitalReceiptPage() {
@@ -24,7 +28,6 @@ export default function DigitalReceiptPage() {
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Settings State
   const [settings, setSettings] = useState({
     storeName: "PUTRAJAYA LAUNDRY",
     storePhone: "+62 081232052919",
@@ -56,7 +59,6 @@ export default function DigitalReceiptPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       if (!id) return;
-      // Deteksi apakah "id" di URL adalah UUID (berarti receipt_token) atau integer ID
       const isUUID =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
           id,
@@ -82,69 +84,78 @@ export default function DigitalReceiptPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-8">
-        <Loader2 className="w-10 h-10 text-cyan-500 animate-spin mb-4" />
-        <p className="text-slate-400 font-medium">Memuat Struk Digital...</p>
+      <div className="min-h-screen bg-[#0a0f1e] flex flex-col justify-center items-center p-8">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-cyan-500/20 blur-xl animate-pulse" />
+          <Loader2 className="relative w-10 h-10 text-cyan-400 animate-spin" />
+        </div>
+        <p className="text-slate-400 font-medium mt-4 text-sm tracking-wide">
+          Memuat Struk Digital...
+        </p>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-8">
-        <Package className="w-16 h-16 text-slate-600 mb-4" />
+      <div className="min-h-screen bg-[#0a0f1e] flex flex-col justify-center items-center p-8">
+        <Package className="w-16 h-16 text-slate-700 mb-4" />
         <h2 className="text-xl font-bold text-white mb-2">
           Order Tidak Ditemukan
         </h2>
-        <p className="text-slate-400 text-center">
+        <p className="text-slate-500 text-center text-sm">
           Maaf, kami tidak dapat menemukan data pesanan untuk struk ini.
         </p>
       </div>
     );
   }
 
-  // Calculate Subtotal (Sum of Raw Prices)
   const subtotal = (order.order_items || []).reduce((acc, item) => {
     return acc + Number(item.service_price || 0) * Number(item.quantity);
   }, 0);
 
   const rounding = order.total_price - subtotal;
 
-  const getStatusDisplay = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case "pending":
         return {
-          label: "Menunggu",
-          color: "text-amber-500",
-          bg: "bg-amber-500/10",
-          icon: <Clock className="w-4 h-4 mr-1" />,
+          label: "MENUNGGU",
+          color: "text-amber-400",
+          bg: "bg-amber-400/10 border-amber-400/30",
+          dot: "bg-amber-400",
+          icon: <Clock className="w-3.5 h-3.5" />,
         };
       case "processing":
         return {
-          label: "Diproses",
-          color: "text-blue-500",
-          bg: "bg-blue-500/10",
-          icon: <Package className="w-4 h-4 mr-1" />,
+          label: "DIPROSES",
+          color: "text-blue-400",
+          bg: "bg-blue-400/10 border-blue-400/30",
+          dot: "bg-blue-400",
+          icon: <Package className="w-3.5 h-3.5" />,
         };
       case "completed":
         return {
-          label: "Selesai",
-          color: "text-emerald-500",
-          bg: "bg-emerald-500/10",
-          icon: <CheckCircle2 className="w-4 h-4 mr-1" />,
+          label: "SELESAI",
+          color: "text-emerald-400",
+          bg: "bg-emerald-400/10 border-emerald-400/30",
+          dot: "bg-emerald-400",
+          icon: <CheckCircle2 className="w-3.5 h-3.5" />,
         };
       case "paid":
         return {
-          label: "Lunas",
-          color: "text-purple-500",
-          bg: "bg-purple-500/10",
-          icon: <CheckCircle2 className="w-4 h-4 mr-1" />,
+          label: "LUNAS",
+          color: "text-purple-400",
+          bg: "bg-purple-400/10 border-purple-400/30",
+          dot: "bg-purple-400",
+          icon: <CheckCircle2 className="w-3.5 h-3.5" />,
         };
       default:
         return {
-          label: status,
+          label: status.toUpperCase(),
           color: "text-slate-400",
-          bg: "bg-slate-800",
+          bg: "bg-slate-700/30 border-slate-600/30",
+          dot: "bg-slate-400",
           icon: null,
         };
     }
@@ -153,8 +164,6 @@ export default function DigitalReceiptPage() {
   const downloadPDF = async () => {
     try {
       setIsDownloading(true);
-
-      // Dynamic import to avoid SSR issues
       const { toPng } = await import("html-to-image");
       const { jsPDF } = await import("jspdf");
 
@@ -163,33 +172,24 @@ export default function DigitalReceiptPage() {
 
       if (!element) return;
 
-      // Sembunyikan footer sementara agar tidak ada area putih lebar di PDF
-      if (footerElement) {
-        footerElement.style.display = "none";
-      }
-
-      // Beri waktu sejenak agar browser merender ulang ukuran elemen
+      if (footerElement) footerElement.style.display = "none";
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       const imgData = await toPng(element, {
         quality: 1.0,
         pixelRatio: 2,
-        backgroundColor: "#0f172a", // match bg-slate-900
+        backgroundColor: "#0a0f1e",
       });
 
-      // Kembalikan footer kembali
-      if (footerElement) {
-        footerElement.style.display = "flex";
-      }
+      if (footerElement) footerElement.style.display = "flex";
 
-      // Hitung tinggi proporsional berdasarkan tinggi elemen yang sudah terpotong
-      const pdfWidth = 100; // 100mm lebar ideal untuk dibaca
+      const pdfWidth = 100;
       const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
 
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: [pdfWidth, pdfHeight], // Gunakan dimensi custom agar tinggi menyesuaikan otomatis
+        format: [pdfWidth, pdfHeight],
       });
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
@@ -197,240 +197,328 @@ export default function DigitalReceiptPage() {
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Gagal mengunduh PDF. Silakan coba lagi nanti.");
-
       const footerElement = document.getElementById("receipt-footer");
-      if (footerElement) {
-        footerElement.style.display = "flex";
-      }
+      if (footerElement) footerElement.style.display = "flex";
     } finally {
       setIsDownloading(false);
     }
   };
 
-  const statusDisplay = getStatusDisplay(order.status);
+  const statusConfig = getStatusConfig(order.status);
+  const formattedDate = new Date(order.created_at).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const formattedTime = new Date(order.created_at).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 p-4 sm:p-8 flex justify-center items-start pt-10 pb-20">
-      <Card
-        id="receipt-content"
-        className="w-full max-w-md bg-slate-900/80 border-slate-800/50 shadow-2xl backdrop-blur-xl overflow-hidden"
-      >
-        <div className="h-2 w-full bg-gradient-to-r from-cyan-500 to-blue-600"></div>
+    <div className="min-h-screen bg-[#0a0f1e] flex justify-center items-start pt-8 pb-24 px-4 sm:px-6">
+      {/* Ambient glow background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+      </div>
 
-        <CardHeader className="text-center pb-2 pt-6 border-b border-slate-800/50">
-          <CardTitle className="text-xl sm:text-2xl font-black tracking-tight text-white mb-2 uppercase">
-            {settings.storeName}
-          </CardTitle>
-          <div className="text-xs sm:text-sm text-slate-400 whitespace-pre-line leading-relaxed px-4">
-            {settings.storeAddress}
-          </div>
+      <div id="receipt-content" className="w-full max-w-sm relative">
+        {/* ── BOARDING PASS CARD ── */}
+        <div
+          className="relative rounded-3xl overflow-hidden shadow-2xl"
+          style={{
+            background:
+              "linear-gradient(160deg, #111827 0%, #0d1526 50%, #111827 100%)",
+            boxShadow:
+              "0 0 0 1px rgba(56,189,248,0.12), 0 32px 80px -12px rgba(0,0,0,0.8), 0 0 60px -20px rgba(6,182,212,0.15)",
+          }}
+        >
+          {/* Top accent strip */}
+          <div className="h-1.5 w-full bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500" />
 
-          <div className="mt-5 inline-flex flex-col items-center justify-center space-y-1">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-              E-Receipt / Struk Digital
-            </span>
-            <div className="px-4 py-1.5 rounded-full border border-slate-700/50 bg-slate-800/50">
-              <span className="text-cyan-400 font-mono font-bold tracking-wider">
-                #{order.id}
-              </span>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-6 pb-6 space-y-6">
-          {/* Order Status */}
-          <div
-            data-html2canvas-ignore
-            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/50 border border-slate-800/50"
-          >
-            <span className="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-2">
-              Status Pesanan
-            </span>
+          {/* ── HEADER ZONE (Airline-style top section) ── */}
+          <div className="relative px-6 pt-6 pb-7 overflow-hidden">
+            {/* Background pattern */}
             <div
-              className={`flex items-center px-3 py-1.5 rounded-full ${statusDisplay.bg} ${statusDisplay.color} font-bold`}
-            >
-              {statusDisplay.icon}
-              {statusDisplay.label}
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: `radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)`,
+                backgroundSize: "24px 24px",
+              }}
+            />
+
+            {/* Logo + Store Name */}
+            <div className="relative flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 flex-shrink-0">
+                  <WashingMachine className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-cyan-400/70 font-bold tracking-[0.2em] uppercase leading-none mb-0.5">
+                    e-receipt
+                  </p>
+                  <h1 className="text-base font-black text-white tracking-tight leading-tight">
+                    {settings.storeName}
+                  </h1>
+                </div>
+              </div>
+
+              {/* Status badge */}
+              <div
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[10px] font-bold tracking-widest ${statusConfig.bg} ${statusConfig.color}`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot} animate-pulse`}
+                />
+                {statusConfig.label}
+              </div>
             </div>
-            {order.status === "paid" || order.status === "completed" ? (
-              <p className="text-xs text-emerald-500 mt-2 font-medium">
-                Terima kasih atas pesanan Anda!
-              </p>
-            ) : (
-              <p className="text-xs text-slate-400 mt-2">
-                Pesanan sedang dalam proses.
-              </p>
-            )}
+
+            {/* Store Info */}
+            <div className="relative space-y-1.5">
+              <div className="flex items-start gap-2 text-slate-500 text-[11px]">
+                <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-cyan-500/50" />
+                <span className="whitespace-pre-line leading-relaxed">
+                  {settings.storeAddress}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-500 text-[11px]">
+                <Phone className="w-3 h-3 flex-shrink-0 text-cyan-500/50" />
+                <span>{settings.storePhone}</span>
+              </div>
+            </div>
           </div>
 
-          {/* Customer Detail */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-300 border-b border-slate-800 pb-2 flex justify-between">
-              <span>Detail Pelanggan</span>
-              <span className="font-mono text-xs text-slate-500">
-                {new Date(order.created_at).toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
+          {/* ── PERFORATED TEAR LINE ── */}
+          <div className="relative flex items-center">
+            {/* Left notch */}
+            <div className="absolute -left-4 w-8 h-8 rounded-full bg-[#0a0f1e] z-10 shadow-inner" />
+            {/* Right notch */}
+            <div className="absolute -right-4 w-8 h-8 rounded-full bg-[#0a0f1e] z-10 shadow-inner" />
+            {/* Dashed line */}
+            <div className="flex-1 mx-6 border-t-2 border-dashed border-slate-700/60" />
+          </div>
+
+          {/* ── TICKET BODY ── */}
+          <div className="px-6 py-6 space-y-5">
+            {/* Ticket header row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-800/40 rounded-2xl p-3 border border-slate-700/30">
+                <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
+                  <Hash className="w-2.5 h-2.5" /> Nomor Order
+                </p>
+                <p className="text-sm font-black text-cyan-400 font-mono tracking-wide">
+                  #{order.id}
+                </p>
+              </div>
+              <div className="bg-slate-800/40 rounded-2xl p-3 border border-slate-700/30">
+                <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
+                  <CalendarDays className="w-2.5 h-2.5" /> Tanggal
+                </p>
+                <p className="text-[11px] font-bold text-white leading-tight">
+                  {formattedDate}
+                </p>
+                <p className="text-[10px] text-slate-500 font-mono">
+                  {formattedTime}
+                </p>
+              </div>
+            </div>
+
+            {/* Passenger-style section: Customer */}
+            <div className="bg-slate-800/30 rounded-2xl p-4 border border-slate-700/30">
+              <p className="text-[9px] text-cyan-400/60 uppercase tracking-[0.2em] font-bold mb-3">
+                Pelanggan
+              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-black text-white uppercase tracking-wide leading-tight">
+                    {order.customer_name}
+                  </p>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">
+                    {order.customer_phone}
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 flex items-center justify-center">
+                  <span className="text-sm font-black text-slate-300">
+                    {order.customer_name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Service Items ── */}
+            <div>
+              <p className="text-[9px] text-cyan-400/60 uppercase tracking-[0.2em] font-bold mb-3">
+                Rincian Layanan
+              </p>
+              <div className="space-y-2.5">
+                {(order.order_items || []).map((item, idx) => {
+                  const roundedTotal = calculateRoundedPrice(
+                    Number(item.service_price),
+                    Number(item.quantity),
+                  );
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-slate-800/40 border border-slate-700/20"
+                    >
+                      <div className="flex-1 pr-3">
+                        <p className="text-[11px] font-bold text-slate-200 uppercase tracking-wide">
+                          {item.service_name || item.name}
+                        </p>
+                        <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
+                          {item.quantity} {item.unit} ×{" "}
+                          {formatCurrency(Number(item.service_price || 0))}
+                        </p>
+                      </div>
+                      <p className="text-sm font-black text-white font-mono">
+                        {formatCurrency(roundedTotal)}
+                      </p>
+                    </div>
+                  );
                 })}
-              </span>
-            </h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="text-slate-500">Nama</div>
-              <div className="font-medium text-right text-white uppercase">
-                {order.customer_name}
-              </div>
-              <div className="text-slate-500">No. HP</div>
-              <div className="font-medium text-right text-white font-mono">
-                {order.customer_phone}
               </div>
             </div>
-          </div>
 
-          {/* Order Items */}
-          <div className="space-y-3 pt-2">
-            <h3 className="text-sm font-semibold text-slate-300 border-b border-slate-800 pb-2">
-              Rincian Layanan
-            </h3>
-            <div className="space-y-3">
-              {(order.order_items || []).map((item, idx) => {
-                const roundedTotal = calculateRoundedPrice(
-                  Number(item.service_price),
-                  Number(item.quantity),
-                );
-                return (
-                  <div
-                    key={idx}
-                    className="flex justify-between items-start text-sm"
-                  >
-                    <div className="flex-1 pr-4">
-                      <div className="font-semibold text-slate-200 uppercase">
-                        {item.service_name || item.name}
-                      </div>
-                      <div className="text-slate-500 text-xs mt-0.5">
-                        {item.quantity} {item.unit} ×{" "}
-                        {formatCurrency(Number(item.service_price || 0))}
-                      </div>
-                    </div>
-                    <div className="font-bold text-white font-mono">
-                      {formatCurrency(roundedTotal)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Pricing Summary */}
-          <div className="space-y-2 pt-4 border-t border-slate-800/80 border-dashed">
-            <div className="flex justify-between text-sm text-slate-400">
-              <span>Subtotal</span>
-              <span className="font-mono">{formatCurrency(subtotal)}</span>
-            </div>
-            {rounding !== 0 && (
-              <div className="flex justify-between text-sm text-slate-400">
-                <span>Pembulatan</span>
-                <span className="font-mono">{formatCurrency(rounding)}</span>
+            {/* Notes */}
+            {order.notes && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
+                <div className="w-1 h-full min-h-[16px] rounded-full bg-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[9px] font-bold text-amber-400 uppercase tracking-widest mb-0.5">
+                    Catatan
+                  </p>
+                  <p className="text-[11px] text-amber-300/80 italic leading-relaxed">
+                    {order.notes}
+                  </p>
+                </div>
               </div>
             )}
-            <div className="flex justify-between items-center text-lg font-black text-cyan-400 pt-2 border-t border-slate-800/50">
-              <span>TOTAL</span>
-              <span className="font-mono">
-                {formatCurrency(order.total_price)}
-              </span>
+          </div>
+
+          {/* ── SECOND PERFORATED LINE (before total) ── */}
+          <div className="relative flex items-center">
+            <div className="absolute -left-4 w-8 h-8 rounded-full bg-[#0a0f1e] z-10" />
+            <div className="absolute -right-4 w-8 h-8 rounded-full bg-[#0a0f1e] z-10" />
+            <div className="flex-1 mx-6 border-t-2 border-dashed border-slate-700/60" />
+          </div>
+
+          {/* ── TOTAL ZONE (Barcode area-style) ── */}
+          <div className="px-6 py-5">
+            {/* Price breakdown */}
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-xs text-slate-500">
+                <span>Subtotal</span>
+                <span className="font-mono">{formatCurrency(subtotal)}</span>
+              </div>
+              {rounding !== 0 && (
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>Pembulatan</span>
+                  <span className="font-mono">{formatCurrency(rounding)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Total — bold airline gate number style */}
+            <div
+              className="rounded-2xl px-5 py-4 flex items-center justify-between"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(59,130,246,0.12) 100%)",
+                border: "1px solid rgba(6,182,212,0.2)",
+              }}
+            >
+              <div>
+                <p className="text-[9px] text-cyan-400/60 uppercase tracking-[0.2em] font-bold mb-0.5">
+                  Total Pembayaran
+                </p>
+                <p
+                  className="text-2xl font-black text-white font-mono tracking-tight"
+                  style={{
+                    textShadow: "0 0 20px rgba(6,182,212,0.4)",
+                  }}
+                >
+                  {formatCurrency(order.total_price)}
+                </p>
+              </div>
+              <div className="text-right">
+                <div
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold ${statusConfig.bg} ${statusConfig.color}`}
+                >
+                  {statusConfig.icon}
+                  {statusConfig.label}
+                </div>
+              </div>
+            </div>
+
+            {/* Terms */}
+            <div className="mt-5 pt-4 border-t border-slate-800/60">
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2 text-center">
+                Syarat &amp; Ketentuan
+              </p>
+              <p className="text-[10px] text-slate-600 whitespace-pre-line leading-relaxed text-center">
+                {settings.receiptFooter}
+              </p>
             </div>
           </div>
 
-          {/* Notes */}
-          {order.notes && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <span className="text-xs font-bold text-amber-500 uppercase tracking-wider block mb-1">
-                Catatan:
-              </span>
-              <span className="text-sm text-amber-400/80 italic">
-                {order.notes}
-              </span>
-            </div>
-          )}
-          {/* Terms and Conditions */}
-          <div className="pt-4 mt-2 border-t border-slate-800/50">
-            <p className="text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider text-center">
-              Syarat & Ketentuan
-            </p>
-            <div className="text-[10px] text-slate-500 whitespace-pre-line leading-relaxed text-center px-2">
-              {settings.receiptFooter}
-            </div>
-          </div>
-        </CardContent>
+          {/* Bottom accent strip */}
+          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-400 opacity-50" />
+        </div>
 
-        <CardFooter
+        {/* ── Actions (outside the receipt card, not captured in PDF) ── */}
+        <div
           id="receipt-footer"
-          className="bg-slate-950/50 border-t border-slate-800/80 p-6 flex flex-col gap-4"
+          className="mt-5 flex flex-col gap-3"
+          data-html2canvas-ignore
         >
           <Button
-            className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold h-12 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+            className="w-full h-12 rounded-2xl font-bold text-sm tracking-wide text-white border-0"
+            style={{
+              background: "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)",
+              boxShadow: "0 4px 24px rgba(6,182,212,0.25)",
+            }}
             onClick={downloadPDF}
             disabled={isDownloading}
-            data-html2canvas-ignore
           >
             {isDownloading ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
-              <Download className="w-5 h-5 mr-2" />
+              <Download className="w-4 h-4 mr-2" />
             )}
             {isDownloading ? "Memproses PDF..." : "Simpan Struk (PDF)"}
           </Button>
 
-          <div
-            className="flex flex-col items-center justify-center space-y-2 mt-2"
-            data-html2canvas-ignore
-          >
-            <p className="text-[11px] text-slate-500 font-medium">
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-[11px] text-slate-600 font-medium">
               Butuh Bantuan?
             </p>
             <a
               href={`https://wa.me/${settings.storePhone.replace(/\D/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-4 py-2 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors rounded-full text-xs font-bold font-mono tracking-wide"
+              className="inline-flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold font-mono tracking-wide transition-all"
+              style={{
+                background: "rgba(37,211,102,0.1)",
+                color: "#25D366",
+                border: "1px solid rgba(37,211,102,0.25)",
+              }}
             >
               Hubungi via WhatsApp
             </a>
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
 
-      {/* Print Styles for saving as PDF beautifully */}
       <style jsx global>{`
         @media print {
           body {
             background: white !important;
           }
-          .lucide-download {
+          button,
+          #receipt-footer {
             display: none !important;
-          }
-          button {
-            display: none !important;
-          }
-          .Card {
-            box-shadow: none !important;
-            border: 1px solid #e2e8f0 !important;
-            background: white !important;
-            color: black !important;
-          }
-          * {
-            color: black !important;
-            border-color: #e2e8f0 !important;
-          }
-          .text-slate-400,
-          .text-slate-500,
-          .text-slate-300 {
-            color: #64748b !important;
-          }
-          .bg-slate-900,
-          .bg-slate-950,
-          .bg-slate-800 {
-            background: white !important;
           }
         }
       `}</style>
